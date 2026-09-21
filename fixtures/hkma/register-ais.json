@@ -1,0 +1,192 @@
+{
+    "header": {
+        "success": true,
+        "err_code": "0000",
+        "err_msg": "No error found"
+    },
+    "result": {
+        "datasize": 20,
+        "records": [
+            {
+                "name": "ABC BANKING CORPORATION LTD",
+                "local_address": "9/F, SIBERIAN BUILDING, 29 DES VOEUX ROAD, CENTRAL, HONG KONG",
+                "principle_address": "7 DUKE OF EDINBURGH AVENUE, PLACE D' ARMES, 11328, PORT LOUIS, MAURITIUS",
+                "type": "Local Representative Office",
+                "secstaff_reg_url": null,
+                "latitude": 22.282901859228,
+                "longitude": 114.157334625842
+            },
+            {
+                "name": "ABN AMRO CLEARING BANK N.V.",
+                "local_address": "2407-2409, LEVEL 24, ;THREE PACIFIC PLACE, ;1 QUEEN'S ROAD EAST, ;HONG KONG",
+                "principle_address": "GUSTAV MAHLERLAAN 10, 1082 PP AMSTERDAM, THE NETHERLANDS",
+                "type": "Restricted Licence Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=200112",
+                "latitude": 22.2770220602961,
+                "longitude": 114.168030267553
+            },
+            {
+                "name": "ACCESS BANK UK LIMITED (THE)",
+                "local_address": "SUITE 1501-4, 15/F, TWO EXCHANGE SQUARE, 8 CONNAUGHT PLACE, CENTRAL, HONG KONG",
+                "principle_address": "4 ROYAL COURT, GADBROOK WAY, GADBROOK PARK, NORTHWICH, CHESHIRE, CW9 7UT, UNITED KINGDOM",
+                "type": "Restricted Licence Bank",
+                "secstaff_reg_url": null,
+                "latitude": 22.2837879934054,
+                "longitude": 114.158344625224
+            },
+            {
+                "name": "AGRICULTURAL BANK OF CHINA LIMITED",
+                "local_address": "25/F, AGRICULTURAL BANK OF CHINA TOWER, 50 CONNAUGHT ROAD CENTRAL, HONG KONG.",
+                "principle_address": "NO. 69, JIANGUOMEN NEI AVENUE, DONGCHENG DISTRICT, BEIJING, P.R. CHINA",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100235",
+                "latitude": 22.2854192839705,
+                "longitude": 114.155976696388
+            },
+            {
+                "name": "ALLIED BANKING CORPORATION (HONG KONG) LIMITED",
+                "local_address": "1402 WORLD-WIDE HOUSE, 19 DES VOEUX ROAD CENTRAL, HONG KONG.",
+                "principle_address": null,
+                "type": "Restricted Licence Bank",
+                "secstaff_reg_url": null,
+                "latitude": 22.2825760359348,
+                "longitude": 114.157792819561
+            },
+            {
+                "name": "ANT BANK (HONG KONG) LIMITED",
+                "local_address": "SUITES 2101-2105, 2201-2204 AND 2301, ;TOWER ONE, TIMES SQUARE, ;1 MATHESON STREET, ;CAUSEWAY BAY, HONG KONG",
+                "principle_address": null,
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100331",
+                "latitude": 22.2786736827041,
+                "longitude": 114.182316538718
+            },
+            {
+                "name": "ASHIKAGA BANK, LTD. (THE)",
+                "local_address": "SUITE 1601, 16/F, TOWER 2, THE GATEWAY, HARBOUR CITY, TSIM SHA TSUI, KOWLOON",
+                "principle_address": "1-25 SAKURA 4-CHOME, UTSUNOMIYA, TOCHIGI PREFECTURE 320-8610, JAPAN.",
+                "type": "Local Representative Office",
+                "secstaff_reg_url": null,
+                "latitude": 22.2994410532312,
+                "longitude": 114.167698725224
+            },
+            {
+                "name": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED",
+                "local_address": "20/F-22/F, THREE EXCHANGE SQUARE, 8 CONNAUGHT PLACE, CENTRAL, HONG KONG.",
+                "principle_address": "ANZ CENTRE MELBOURNE, ;LEVEL 9, 833 COLLINS STREET, DOCKLANDS, ;VICTORIA 3008 AUSTRALIA",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100164",
+                "latitude": 22.2847046142116,
+                "longitude": 114.157399564143
+            },
+            {
+                "name": "BANCO BILBAO VIZCAYA ARGENTARIA S.A.",
+                "local_address": "UNIT 9507, LEVEL 95, INTERNATIONAL COMMERCE CENTRE, 1 AUSTIN ROAD WEST, KOWLOON.",
+                "principle_address": "CIUDAD BBVA, CALLE AZUL, 4 28050 MADRID, SPAIN",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100157",
+                "latitude": 22.3036215555103,
+                "longitude": 114.160244340565
+            },
+            {
+                "name": "BANCO BPM SOCIETA' PER AZIONI",
+                "local_address": "SUITE 3205, CENTRAL PLAZA, 18 HARBOUR ROAD, WAN CHAI, HONG KONG.",
+                "principle_address": "PIAZZA NOGARA 2, 37100 VERONA, ITALY.",
+                "type": "Local Representative Office",
+                "secstaff_reg_url": null,
+                "latitude": 22.2799081642232,
+                "longitude": 114.173729903384
+            },
+            {
+                "name": "BANCO BRADESCO S.A.",
+                "local_address": "SUITE 3516, TWO INTERNATIONAL FINANCE CENTRE, 8 FINANCE STREET, CENTRAL, HONG KONG",
+                "principle_address": "CIDADE DE DEUS, S/N, VILA YARA, OSASCO, SP, CEP 06029-900, BRAZIL",
+                "type": "Local Representative Office",
+                "secstaff_reg_url": null,
+                "latitude": 22.2852777834008,
+                "longitude": 114.159257836305
+            },
+            {
+                "name": "BANCO SANTANDER, S.A.",
+                "local_address": "LEVEL 28, PING AN TOWER, ;INTERNATIONAL GATEWAY CENTRE, ;1 WUI MAN ROAD, KOWLOON",
+                "principle_address": "PASEO DE PEREDA 9-12,;SANTANDER, 39004,;SPAIN.",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100289",
+                "latitude": 22.325701,
+                "longitude": 114.16476
+            },
+            {
+                "name": "BANGKOK BANK PUBLIC COMPANY LIMITED",
+                "local_address": "BANGKOK BANK BUILDING, 28 DES VOEUX ROAD, CENTRAL, HONG KONG.",
+                "principle_address": "333 SILOM ROAD, BANGKOK 10500, THAILAND.",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": null,
+                "latitude": 22.2829748074669,
+                "longitude": 114.156923549934
+            },
+            {
+                "name": "BANK J. SAFRA SARASIN AG",
+                "local_address": "40/F, EDINBURGH TOWER, THE LANDMARK, 15 QUEEN'S ROAD CENTRAL, HONG KONG.",
+                "principle_address": "ELISABETHENSTRASSE 62, POSTFACH, CH-4002 BASEL, SWITZERLAND.",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100297",
+                "latitude": 22.2807749796378,
+                "longitude": 114.157917450082
+            },
+            {
+                "name": "BANK JULIUS BAER & CO. LTD.",
+                "local_address": "39/F, ONE INTERNATIONAL FINANCE CENTRE, 1 HARBOUR VIEW STREET, CENTRAL, HONG KONG.",
+                "principle_address": "BAHNHOFSTRASSE 36, CH-8010 ZURICH, SWITZERLAND.",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100301",
+                "latitude": 22.2850431645719,
+                "longitude": 114.156918525224
+            },
+            {
+                "name": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+                "local_address": "55/F, CHEUNG KONG CENTER, 2 QUEEN'S ROAD CENTRAL, CENTRAL, HONG KONG.",
+                "principle_address": "100 NORTH TRYON STREET, 18/F, CHARLOTTE, NORTH CAROLINA 28255.",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100045",
+                "latitude": 22.2798839040963,
+                "longitude": 114.160541838718
+            },
+            {
+                "name": "BANK OF BEIJING CO., LTD.",
+                "local_address": "UNIT 5601, 56/F, THE CENTER, NO. 99 QUEEN'S ROAD CENTRAL, HONG KONG",
+                "principle_address": "GROUND FLOOR, JIA NO.17, FINANCIAL STREET, XICHENG DISTRICT, BEIJING, PRC.",
+                "type": "Local Representative Office",
+                "secstaff_reg_url": null,
+                "latitude": 22.2845990521876,
+                "longitude": 114.154739996388
+            },
+            {
+                "name": "BANK OF CHINA (HONG KONG) LIMITED",
+                "local_address": "14TH FLOOR, BANK OF CHINA TOWER, NO.1 GARDEN ROAD, HONG KONG.",
+                "principle_address": null,
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100072",
+                "latitude": 22.2795425489391,
+                "longitude": 114.161493096388
+            },
+            {
+                "name": "BANK OF CHINA INTERNATIONAL LIMITED",
+                "local_address": "2/F & 3/F, BANK OF CHINA BUILDING, 2A DES VOEUX ROAD CENTRAL, HONG KONG",
+                "principle_address": null,
+                "type": "Restricted Licence Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=200069",
+                "latitude": 22.2802537910159,
+                "longitude": 114.160114267553
+            },
+            {
+                "name": "BANK OF CHINA LIMITED",
+                "local_address": "7/F, BANK OF CHINA TOWER, 1 GARDEN ROAD, CENTRAL, HONG KONG.",
+                "principle_address": "1 FUXINGMEN NEI DAJIE, BEIJING 100818, CHINA.",
+                "type": "Licensed Bank",
+                "secstaff_reg_url": "http://apps.hkma.gov.hk/eng/index.php?c=search&m=search_by_institution&ri=100011",
+                "latitude": 22.2794281237958,
+                "longitude": 114.16145653695
+            }
+        ]
+    }
+}

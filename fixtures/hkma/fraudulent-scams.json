@@ -1,0 +1,152 @@
+{
+    "header": {
+        "success": true,
+        "err_code": "0000",
+        "err_msg": "No error found"
+    },
+    "result": {
+        "datasize": 20,
+        "records": [
+            {
+                "issue_date": "2026-09-17",
+                "alleged_name": "The Bank of East Asia, Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.hkbea.com/pdf/en/about-bea/new-release/2026/20260916en.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]sbs/merchant/bank-confirm/bea/478435127 "
+            },
+            {
+                "issue_date": "2026-09-17",
+                "alleged_name": "Shanghai Commercial Bank Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.shacombank.com.hk/eng/main/tips/images/press_20260916_fraudulent.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]sbs/merchant/bank-confirm/shacom/478435127 "
+            },
+            {
+                "issue_date": "2026-09-17",
+                "alleged_name": "Chong Hing Bank Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.chbank.com/data/media/document/20260916-114947091.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]sbs/merchant/bank-confirm/chb/478435127"
+            },
+            {
+                "issue_date": "2026-09-17",
+                "alleged_name": "Chiyu Banking Corporation Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.chiyubank.com/cyben/articleFileDir/2026-09/16/819d49ef2ed74b05b7d16153aaf1abf0/%E3%80%90Press%20Release%E3%80%91Statement%20on%20Fraudulent%20Website%20-%2020260916-EN.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]sbs/merchant/bank-confirm/cybhk/478435127"
+            },
+            {
+                "issue_date": "2026-09-17",
+                "alleged_name": "OCBC Bank (Hong Kong) Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.ocbc.com.hk/iwov-resources/hk/ocbc/gbc/pdf/media/2026/PR_Statement%20on%20fraudulent%20website_0916_EN.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]sbs/merchant/bank-confirm/ocbc/478435127 "
+            },
+            {
+                "issue_date": "2026-09-16",
+                "alleged_name": "Chiyu Banking Corporation Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.chiyubank.com/cyben/articleFileDir/2026-09/15/757996bc98c04a2e98b2bd20ba5606e6.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]asia/merchant/bank-confirm/cybhk/910773559"
+            },
+            {
+                "issue_date": "2026-09-15",
+                "alleged_name": "The Bank of East Asia, Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.hkbea.com/pdf/en/about-bea/new-release/2026/20260914en.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]asia/merchant/bank-confirm/bea/910773559 "
+            },
+            {
+                "issue_date": "2026-09-15",
+                "alleged_name": "Shanghai Commercial Bank Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.shacombank.com.hk/eng/main/tips/images/press_20260914_fraudulent.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]asia/merchant/bank-confirm/shacom/910773559 "
+            },
+            {
+                "issue_date": "2026-09-15",
+                "alleged_name": "Chong Hing Bank Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.chbank.com/data/media/document/20260914-115009040.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-market[.]asia/merchant/bank-confirm/chb/910773559"
+            },
+            {
+                "issue_date": "2026-09-15",
+                "alleged_name": "Fubon Bank (Hong Kong) Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.fubonbank.com.hk/resources/common/pdf/pr_260914_e.pdf",
+                "fraud_website_address": "hxxps://fubon[.]mmcom[.]sbs "
+            },
+            {
+                "issue_date": "2026-09-10",
+                "alleged_name": "DBS Bank (Hong Kong) Limited",
+                "scam_type": "Fraudulent websites, internet banking login screens and phishing emails",
+                "pr_url": "https://www.dbs.com/hongkong/en/security_alert.page#20260909-1",
+                "fraud_website_address": "af.invocing@ariesfresh[.]com ;cfcsupply@cfccarriers[.]com ;khernandez@dpsllc[.]us ;hxxps://misonla[.]com/a "
+            },
+            {
+                "issue_date": "2026-09-10",
+                "alleged_name": "Fubon Bank (Hong Kong) Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.fubonbank.com.hk/resources/common/pdf/pr_260909_e.pdf",
+                "fraud_website_address": "hxxps://fubon[.]comcn[.]sbs "
+            },
+            {
+                "issue_date": "2026-09-09",
+                "alleged_name": "Bank of China (Hong Kong) Limited",
+                "scam_type": "Phishing instant messages",
+                "pr_url": "https://www.bochk.com/dam/bochk/desktop/top/aboutus/notice/2026/20260908_Statement_EN.pdf",
+                "fraud_website_address": "22148435 ;'34099938 ;'34099929"
+            },
+            {
+                "issue_date": "2026-09-09",
+                "alleged_name": "OCBC Bank (Hong Kong) Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.ocbc.com.hk/iwov-resources/hk/ocbc/gbc/pdf/media/2026/20260908_EN.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-money[.]shop/merchant/bank-confirm/ocbc/153857942"
+            },
+            {
+                "issue_date": "2026-09-08",
+                "alleged_name": "China Construction Bank (Asia) Corporation Limited",
+                "scam_type": "Fraudulent websites and internet banking login screens",
+                "pr_url": "https://www.asia.ccb.com/hongkong/doc/about_us/whatsnew/fraud-web-and-app-notifications/fraud-web-and-app.pdf",
+                "fraud_website_address": "hxxps://carousell[.]money-receive[.]sale/merchant/bank-confirm/ccb/242265404;hxxps://facebook[.]money-receive[.]sale/merchant/bank-confirm/ccb/237882049;hxxps://facebook[.]money-receive[.]sale/merchant/bank-confirm/ccb/824043949;hxxps://carousellref[.]money-receive[.]fun/merchant/bank-confirm/ccb/214163051;hxxps://carousell[.]money-receive[.]fun/merchant/bank-confirm/ccb/585738454;hxxps://carousell[.]money-receive[.]digital/merchant/bank-confirm/ccb/680931145;hxxps://carousell[.]money-receive[.]info/merchant/bank-confirm/ccb/460131920;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/720047515;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/774765714;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/401731432;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/283217075;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/955473754;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/103373126;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/079143264;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/867175032;hxxps://carousell[.]market-receive[.]xyz/merchant/bank-confirm/ccb/258713878;hxxps://carousellref[.]market-receive[.]bond/merchant/bank-confirm/ccb/336823901;hxxps://facebook[.]market-receive[.]club/merchant/bank-confirm/ccb/812046804;hxxps://facebook[.]shop-alipay[.]click/merchant/bank-confirm/ccb/783696755;hxxps://carousell[.]shop-alipay[.]click/merchant/bank-confirm/ccb/235529326;hxxps://carousellref[.]shop-alipay[.]lat/merchant/bank-confirm/ccb/411982013;hxxps://carousell[.]money-quick[.]cfd/merchant/bank-confirm/ccb/881463458;hxxps://carousell[.]money-quick[.]cfd/merchant/bank-confirm/ccb/177373748;hxxps://boc[.]tearwhereh[.]cfd/ccb"
+            },
+            {
+                "issue_date": "2026-09-08",
+                "alleged_name": "Bank Julius Baer & Co. Ltd.",
+                "scam_type": "Fraudulent websites",
+                "pr_url": "https://www.juliusbaer.com/en/legal/fraud-knowledge-hub/alerts/",
+                "fraud_website_address": "juliusbaer-web-live[.]sh01[.]de;juliusbaerch[.]godaddysites[.]com;juliusbarassetsmanagement[.]com"
+            },
+            {
+                "issue_date": "2026-09-07",
+                "alleged_name": "The Bank of East Asia, Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.hkbea.com/pdf/en/about-bea/new-release/2026/20260904en.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-money[.]shop/merchant/bank-confirm/bea/153857942 "
+            },
+            {
+                "issue_date": "2026-09-07",
+                "alleged_name": "Shanghai Commercial Bank Limited",
+                "scam_type": "Fraudulent website and internet banking login screen",
+                "pr_url": "https://www.shacombank.com.hk/eng/main/tips/images/press_20260904_fraudulent.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-money[.]shop/merchant/bank-confirm/shacom/153857942 "
+            },
+            {
+                "issue_date": "2026-09-07",
+                "alleged_name": "Chong Hing Bank Limited",
+                "scam_type": "Fraudulent websites and internet banking login screens",
+                "pr_url": "https://www.chbank.com/data/media/document/20260904-112939012.pdf",
+                "fraud_website_address": "hxxps://carousell[.]money-quick[.]me/merchant/bank-confirm/chb/347933534;hxxps://carousell[.]quick-money[.]shop/merchant/bank-confirm/chb/153857942"
+            },
+            {
+                "issue_date": "2026-09-07",
+                "alleged_name": "Chiyu Banking Corporation Limited",
+                "scam_type": "Fraudulent websites and internet banking login screens",
+                "pr_url": "https://www.chiyubank.com/cyben/articleFileDir/2026-09/04/02e11e16a2c2478eb6d6e29d70484b41.pdf",
+                "fraud_website_address": "hxxps://carousell[.]quick-money[.]shop/merchant/bank-confirm/cybhk/153857942;hxxps://carousell[.]money-quick[.]me/merchant/bank-confirm/cybhk/347933534"
+            }
+        ]
+    }
+}

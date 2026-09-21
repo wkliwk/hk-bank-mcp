@@ -1,0 +1,232 @@
+{
+    "header": {
+        "success": true,
+        "err_code": "0000",
+        "err_msg": "No error found"
+    },
+    "result": {
+        "datasize": 20,
+        "records": [
+            {
+                "district": "YuenLong",
+                "bank_name": "Industrial and Commercial Bank of China (Asia) Limited",
+                "branch_name": "Yuen Long Branch",
+                "address": "G/F, 197-199 Castle Peak Road, Yuen Long, New Territories",
+                "service_hours": "Mon-Thu, 09:00 - 17:00;;Fri, 09:00 - 17:30; ;Sat, 09:00 - 13:00;;Closed on Sun and public holiday",
+                "latitude": "22.44472",
+                "longitude": "114.02617",
+                "barrier-free_access": "Assisted listening systems available, Wheelchair accessible counters or meeting rooms, Guide dogs welcome",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "YuenLong",
+                "bank_name": "Bank of  Communications (Hong Kong) Limited",
+                "branch_name": "Yuen Long Branch",
+                "address": "Shop 2A-2B, G/F, Man Yu Building, 2-14 Tai Fung Street, Yuen Long, New Territories",
+                "service_hours": "Mon - Fri : 9:00 AM to 5:00 PM, Sat : 9:00 AM to 1:00 PM",
+                "latitude": "22.445801",
+                "longitude": "114.030125",
+                "barrier-free_access": "Permanent or temporary ramp, Call button, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "YuenLong",
+                "bank_name": "Bank of  Communications (Hong Kong) Limited",
+                "branch_name": "Tin Shui Wai Branch",
+                "address": "Shop No. G72, G/F, +WOO (Phase 1), 12-18 Tin Yan Road, Tin Shui Wai, New Territories",
+                "service_hours": "Mon - Fri : 9:00 AM to 5:00 PM, Sat : 9:00 AM to 1:00 PM",
+                "latitude": "22.457611",
+                "longitude": "114.002472",
+                "barrier-free_access": "Permanent or temporary ramp, Call button, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long",
+                "bank_name": "Hang Seng Bank Limited",
+                "branch_name": "Yuen Long Branch",
+                "address": "93 Castle Peak Road - Yuen Long",
+                "service_hours": "Monday: 09:00-17:00; Tuesday: 09:00-17:00; Wednesday: 09:00-17:00; Thursday: 09:00-17:00; Friday: 09:00-17:00; Saturday: 09:00-13:00",
+                "latitude": "22.4447119",
+                "longitude": "114.0290114",
+                "barrier-free_access": "Wheelchair accessible counters or meeting rooms,Guide dogs welcome,Assisted listening systems,Call button",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long",
+                "bank_name": "Hang Seng Bank Limited",
+                "branch_name": "Yuen Long (Kau Yuk Road) Branch",
+                "address": "1/F, Fu Ho Building, 5 Kau Yuk Road",
+                "service_hours": "Monday: 09:00-17:00; Tuesday: 09:00-17:00; Wednesday: 09:00-17:00; Thursday: 09:00-17:00; Friday: 09:00-17:00; Saturday: 09:00-13:00",
+                "latitude": "22.44289",
+                "longitude": "114.02807",
+                "barrier-free_access": "Wheelchair accessible counters or meeting rooms,Guide dogs welcome,Assisted listening systems",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long",
+                "bank_name": "Hang Seng Bank Limited",
+                "branch_name": "Tin Shui Wai Branch",
+                "address": "Shop 122, 1/F, +WOO (Phase 2), 12-18 Tin Yan Road, Tin Shui Wai",
+                "service_hours": "Monday: 09:00-17:00; Tuesday: 09:00-17:00; Wednesday: 09:00-17:00; Thursday: 09:00-17:00; Friday: 09:00-17:00; Saturday: 09:00-13:00",
+                "latitude": "22.4568918",
+                "longitude": "114.0035091",
+                "barrier-free_access": "Wheelchair accessible counters or meeting rooms,Guide dogs welcome,Assisted listening systems",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long",
+                "bank_name": "Hang Seng Bank Limited",
+                "branch_name": "Mobile Branch - Long Shin Estate (Every Tuesday)",
+                "address": "Site near Shin Leung House, Long Shin Estate",
+                "service_hours": "Tuesday: 09:30-17:00",
+                "latitude": "22.442257",
+                "longitude": "114.045284",
+                "barrier-free_access": "Wheelchair accessible counters or meeting rooms,Guide dogs welcome,Assisted listening systems",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long",
+                "bank_name": "Hang Seng Bank Limited",
+                "branch_name": "Mobile Branch - Hung Fuk Estate (Every Friday)",
+                "address": "Loading / Unloading space near Hung Lok House, Hung Fuk Estate",
+                "service_hours": "Friday: 09:30-17:00",
+                "latitude": "22.4372618",
+                "longitude": "113.9981308",
+                "barrier-free_access": "Wheelchair accessible counters or meeting rooms,Guide dogs welcome,Assisted listening systems",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Hongkong and Shanghai Banking Corporation Limited",
+                "branch_name": "Yuen Long Premier Centre",
+                "address": "1/F, HSBC Building Yuen Long, 150-160 Castle Peak Road, Yuen Long, New Territories",
+                "service_hours": "Monday: 09:00-17:00<br>Tuesday: 09:00-17:00<br>Wednesday: 09:00-17:00<br>Thursday: 09:00-17:00<br>Friday: 09:00-17:00<br>Saturday: 09:00-13:00",
+                "latitude": "22.444287",
+                "longitude": "114.027399",
+                "barrier-free_access": "Permanent or temporary ramp, Wheelchair accessible counters or meeting rooms, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Hongkong and Shanghai Banking Corporation Limited",
+                "branch_name": "Yuen Long Branch",
+                "address": "Basement, G/F & 2/F, HSBC Building Yuen Long, 150-160 Castle Peak Road, Yuen Long, New Territories",
+                "service_hours": "Monday: 09:00-17:00<br>Tuesday: 09:00-17:00<br>Wednesday: 09:00-17:00<br>Thursday: 09:00-17:00<br>Friday: 09:00-17:00<br>Saturday: 09:00-13:00",
+                "latitude": "22.444299",
+                "longitude": "114.027452",
+                "barrier-free_access": "Permanent or temporary ramp, Wheelchair accessible counters or meeting rooms, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Hongkong and Shanghai Banking Corporation Limited",
+                "branch_name": "Tin Shui Wai Branch",
+                "address": "Shops G39-G40 & G43-G44, G/F, +WOO Phase 2, 18 Tin Yan Road, Tin Shui Wai, New Territories",
+                "service_hours": "Monday: 09:00-17:00<br>Tuesday: 09:00-17:00<br>Wednesday: 09:00-17:00<br>Thursday: 09:00-17:00<br>Friday: 09:00-17:00<br>Saturday: 09:00-13:00",
+                "latitude": "22.456582",
+                "longitude": "114.003406",
+                "barrier-free_access": "Permanent or temporary ramp, Wheelchair accessible counters or meeting rooms, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Hongkong and Shanghai Banking Corporation Limited",
+                "branch_name": "Mobile Branch - Tin Heng Estate (Open Alternate Thursday)",
+                "address": "Tin Heng Estate, Tin Shui Wai, New Territories West (near Heng Kin House)",
+                "service_hours": "Thursday: 09:00-17:00",
+                "latitude": "22.469562",
+                "longitude": "113.998429",
+                "barrier-free_access": "Permanent or temporary ramp, Wheelchair accessible counters or meeting rooms, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Hongkong and Shanghai Banking Corporation Limited",
+                "branch_name": "Mobile Branch - South Site of Light Public Housing at Yau Pok Road, Yuen Long (Every Monday)",
+                "address": "South Site of Light Public Housing at Yau Pok Road, Yuen Long, New Territories",
+                "service_hours": "Monday: 09:00-17:00",
+                "latitude": "22.474802",
+                "longitude": "114.050392",
+                "barrier-free_access": "Permanent or temporary ramp, Wheelchair accessible counters or meeting rooms, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Yuen Long i-Teller",
+                "address": "G/F, 77 Castle Peak Road, Yuen Long",
+                "service_hours": "Mon-Sat, 09:00 - 19:00; Closed on Sun and public holiday",
+                "latitude": "22.44465",
+                "longitude": "114.02947",
+                "barrier-free_access": "Guide dogs welcome, Call button, Wheelchair accessible counters or meeting rooms, Assisted listening systems available, Permanent or temporary ramp",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Yuen Long SupremeGold Centre",
+                "address": "1/F, 77 Castle Peak Road, Yuen Long",
+                "service_hours": "Mon-Fri, 09:00 - 17:00; Sat, 09:00 - 13:00; Closed on Sun and public holiday",
+                "latitude": "22.44465",
+                "longitude": "114.02947",
+                "barrier-free_access": "Call button, Assisted listening systems available, Guide dogs welcome, Wheelchair accessible counters or meeting rooms, Permanent or temporary ramp",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Yuen Long Branch",
+                "address": "G/F, 77 Castle Peak Road, Yuen Long",
+                "service_hours": "Mon-Fri, 09:00 - 17:00;  Sat, 09:00 - 13:00; Closed on Sun and public holiday",
+                "latitude": "22.44465",
+                "longitude": "114.02947",
+                "barrier-free_access": "Guide dogs welcome, Permanent or temporary ramp, Call button, Wheelchair accessible counters or meeting rooms, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Tin Shui Wai i-Teller",
+                "address": "Shop 103 & 103A, 1/F, +WOO Phase 2, 18 Tin Yan Road, Tin Shui Wai",
+                "service_hours": "Mon-Sat, 09:00 - 19:00; Closed on Sun and public holiday",
+                "latitude": "22.457358",
+                "longitude": "114.004225",
+                "barrier-free_access": "Assisted listening systems available, Guide dogs welcome, Wheelchair accessible counters or meeting rooms",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Tin Shui Wai One Sky Mall i-Teller",
+                "address": "Shop 1095-1096, 1/F, One Sky Mall, 8 Tin Sau Road, Tin Shui Wai",
+                "service_hours": "Mon-Sat, 09:00 - 19:00; Closed on Sun and public holiday",
+                "latitude": "22.4644",
+                "longitude": "114.003754",
+                "barrier-free_access": "Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Tin Shui Wai One Sky Mall i-Financial Centre",
+                "address": "Shop 1095-1096, 1/F, One Sky Mall, 8 Tin Sau Road, Tin Shui Wai",
+                "service_hours": "Mon-Fri, 09:00 - 17:00; Sat, 09:00 - 13:00; Closed on Sun and public holiday",
+                "latitude": "22.4644",
+                "longitude": "114.003754",
+                "barrier-free_access": "Assisted listening systems available, Guide dogs welcome",
+                "barrier-free_access_code": null
+            },
+            {
+                "district": "Yuen Long District",
+                "bank_name": "The Bank of East Asia Limited",
+                "branch_name": "Tin Shui Wai Branch",
+                "address": "Shop 103 & 103A, 1/F, +WOO Phase 2, 18 Tin Yan Road, Tin Shui Wai",
+                "service_hours": "Mon-Fri, 09:00 - 17:00;  Sat, 09:00 - 13:00; Closed on Sun and public holiday",
+                "latitude": "22.457358",
+                "longitude": "114.004225",
+                "barrier-free_access": "Wheelchair accessible counters or meeting rooms, Guide dogs welcome, Assisted listening systems available",
+                "barrier-free_access_code": null
+            }
+        ]
+    }
+}
