@@ -153,6 +153,23 @@ describe('project', () => {
     expect(JSON.stringify(detailed).length).toBeGreaterThan(JSON.stringify(concise).length);
   });
 
+  it('returns Chinese names when Chinese is requested', () => {
+    // Regression: the summary honoured lang while the rows stayed English,
+    // so a Cantonese answer was half-translated.
+    const odd: BankLocation = {
+      bank_name: '恒生銀行有限公司',
+      district: '沙田區',
+      address: '新界沙田',
+    };
+    const tc = project(odd, 'atm', 'concise', undefined, 'tc');
+    expect(tc.bank).toBe('恒生銀行有限公司');
+    expect(tc.district).toBe('沙田區');
+
+    const en = project(odd, 'atm', 'concise', undefined, 'en');
+    expect(en.bank).toBe('Hang Seng Bank Limited');
+    expect(en.district).toBe('Sha Tin');
+  });
+
   it('normalises the bank and district onto their canonical names', () => {
     const odd: BankLocation = {
       bank_name: 'Hang Seng Bank Limited',

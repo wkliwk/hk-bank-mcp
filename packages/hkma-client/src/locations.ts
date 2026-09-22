@@ -110,13 +110,17 @@ export function project(
   type: LocationType,
   format: ResponseFormat,
   distanceKm?: number,
+  lang: 'en' | 'tc' = 'en',
 ): ResolvedLocation {
   const bankRecord = bankByPublishedName(str(record.bank_name));
   const districtRecord = resolvePlace(str(record.district))?.district;
 
+  // Names must follow the requested language. The raw record already carries
+  // the right language for its dataset, but normalising through the canonical
+  // record would otherwise force everything back to English.
   const out: ResolvedLocation = {
-    bank: bankRecord?.en ?? str(record.bank_name),
-    district: districtRecord?.en ?? str(record.district),
+    bank: (lang === 'tc' ? bankRecord?.tc : bankRecord?.en) ?? str(record.bank_name),
+    district: (lang === 'tc' ? districtRecord?.tc : districtRecord?.en) ?? str(record.district),
     address: str(record.address),
     type,
   };
@@ -247,7 +251,7 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
   }
 
   const page = matched.slice(0, limit);
-  const results = page.map((m) => project(m.record, m.type, format, m.distance));
+  const results = page.map((m) => project(m.record, m.type, format, m.distance, lang));
 
   return {
     summary: buildSummary(total, results.length, { district, bank, wantedType, query, lang }),
