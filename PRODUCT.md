@@ -122,6 +122,20 @@ Shipped incrementally — each version is independently installable and useful.
 - Uncategorised transactions reported as their own counted bucket, never hidden
 - Categorisation rules are user-extendable without code changes
 
+## Design decisions
+
+Recorded here because the reasoning, not the code, is what distinguishes this project. Full detail lives in the issue each one links to.
+
+| Decision | Why |
+|---|---|
+| Tools grouped by what a person asks, not by API endpoint ([#4](https://github.com/wkliwk/hk-bank-mcp/issues/4)) | HKMA publishes 15 bank-info endpoints organised by its own departments. None corresponds to a question anyone actually asks. A product API already designed around user intent — Trading212's, say — would deserve one tool per endpoint; this one does not. |
+| Filtering happens server-side, not in the model ([#4](https://github.com/wkliwk/hk-bank-mcp/issues/4)) | The full ATM dataset is roughly 401,000 tokens against a 200,000-token context. Returning it raw is not a design preference, it is impossible. Filters are exposed as optional parameters so the model still decides what it wants. |
+| Every filter parameter is optional, and responses state the total match count ([#4](https://github.com/wkliwk/hk-bank-mcp/issues/4)) | The server must never decide what the user wanted. Silently truncating is worse than refusing: a model that cannot see it is missing results will answer confidently and wrongly. |
+| Stale data is served, clearly labelled, when the upstream fails ([#3](https://github.com/wkliwk/hk-bank-mcp/issues/3)) | The HKMA API intermittently returns HTTP 502 with an HTML body, or nothing at all. A figure marked 30 hours old beats an error. With nothing cached, the error tells the model to say so rather than recall a number from memory. |
+| Bodies are parsed defensively rather than with `.json()` ([#3](https://github.com/wkliwk/hk-bank-mcp/issues/3)) | A 502 carries HTML. `SyntaxError: Unexpected token '<'` tells an agent nothing it can act on, which is exactly when a model invents a plausible interest rate. |
+| Jev is used for scam impersonation detection ([#20](https://github.com/wkliwk/hk-bank-mcp/issues/20)) | Whether `hsbc-hk-secure.com` imitates a bank is a semantic judgement no string comparison makes. Its confidence score sets how strongly to warn, so the model is never blindly trusted. The lookup degrades to list matching if the service is unavailable. |
+| Jev is deliberately NOT used for transaction categorisation ([#18](https://github.com/wkliwk/hk-bank-mcp/issues/18)) | It is a hosted API, and merchant names reveal where someone lives, works, and seeks medical care. Keeping statement analysis local is a feature of this product, not a limitation of it. |
+
 ## Out of Scope
 
 - **Bank credentials, login automation, or scraping authenticated sessions.** Deliberate: it would breach bank terms of service, break on every 2FA change, and is the wrong thing to put in an AI tool's hands. Statement data enters only through files the user exported themselves.
