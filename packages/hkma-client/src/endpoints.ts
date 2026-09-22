@@ -54,7 +54,24 @@ export const dailyMonetarySchema = z
   .passthrough();
 export type DailyMonetary = z.infer<typeof dailyMonetarySchema>;
 
-export const hkdInterestRateSchema = z.object({}).passthrough();
+/**
+ * HKD reference rates: bank deposit/lending benchmarks, published on the dates
+ * they change rather than daily. `effect_date` is when a rate took effect, not
+ * a trading day — a query date must find the most recent effect_date at or
+ * before it, not an exact match.
+ */
+export const hkdInterestRateSchema = z
+  .object({
+    effect_date: z.string(),
+    dr_1w: nullableNumber.optional(),
+    dr_1m: nullableNumber.optional(),
+    dr_3m: nullableNumber.optional(),
+    dr_6m: nullableNumber.optional(),
+    dr_12m: nullableNumber.optional(),
+    savings_deposit_rate: nullableNumber.optional(),
+    best_lending_rate: nullableNumber.optional(),
+  })
+  .passthrough();
 export type HkdInterestRate = z.infer<typeof hkdInterestRateSchema>;
 
 /** Shared by the ATM, branch and self-service locators. */

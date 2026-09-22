@@ -4,6 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SERVER_INSTRUCTIONS, SERVER_NAME, SERVER_VERSION } from './meta.js';
 import { registerFindBankLocation } from './tools/find-bank-location.js';
+import { registerGetInterestRates } from './tools/get-interest-rates.js';
 import { registerServerInfo } from './tools/server-info.js';
 
 export function createServer(): McpServer {
@@ -16,6 +17,7 @@ export function createServer(): McpServer {
 
   registerServerInfo(server);
   registerFindBankLocation(server, client);
+  registerGetInterestRates(server, client);
 
   return server;
 }

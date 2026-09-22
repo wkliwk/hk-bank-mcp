@@ -161,6 +161,76 @@ describe('HkmaClient', () => {
     expect(error.kind).toBe('upstream_unavailable');
   });
 
+  it('fetchTimeSeries stops paging once the oldest needed date is covered', async () => {
+    // The real bug this guards: HIBOR daily data goes back to 1996. Paging
+    // until a short page (fetchAll's strategy) would take dozens of requests
+    // for what is usually a "last month" question. Newest-first, stop early.
+    const page = (dates: string[]) =>
+      jsonResponse(
+        JSON.stringify({
+          header: { success: true },
+          result: {
+            datasize: dates.length,
+            records: dates.map((d) => ({ end_of_day: d, ir_3m: 3.0 })),
+          },
+        }),
+      );
+    // Two full pages (both size 100, so neither looks like end-of-dataset via
+    // the short-page signal). Page 1 alone doesn't reach oldestNeeded; page 2
+    // does — must fetch exactly 2, not page through all of history.
+    const size = ENDPOINTS.hiborDaily.maxPageSize;
+    const dateSeq = (startIso: string, count: number, offsetDays: number) =>
+      Array.from({ length: count }, (_, i) => {
+        const d = new Date(`${startIso}T00:00:00Z`);
+        d.setUTCDate(d.getUTCDate() - offsetDays - i);
+        return d.toISOString().slice(0, 10);
+      });
+    const page1 = dateSeq('2026-09-30', size, 0);
+    const page2 = dateSeq(page1[page1.length - 1] ?? '2026-06-23', size, 1);
+    const oldestNeeded = page2[50] ?? '2026-05-01'; // somewhere inside page 2
+    const { fetchImpl, calls } = scriptedFetch([() => page(page1), () => page(page2)]);
+    const client = new HkmaClient({ fetchImpl, sleep: noSleep });
+
+    const result = await client.fetchTimeSeries('hiborDaily', {
+      dateField: 'end_of_day',
+      oldestNeeded,
+      maxRecords: 5000,
+    });
+
+    // Should stop after the page whose oldest date already covers the request,
+    // not page all the way back through history.
+    expect(calls).toHaveLength(2);
+    expect(result.records.length).toBeGreaterThan(0);
+  });
+
+  it('fetchTimeSeries respects maxRecords as a hard cap', async () => {
+    const size = ENDPOINTS.hiborDaily.maxPageSize;
+    const fullPage = () =>
+      jsonResponse(
+        JSON.stringify({
+          header: { success: true },
+          result: {
+            datasize: size,
+            records: Array.from({ length: size }, (_, i) => ({
+              end_of_day: `2020-01-${i}`,
+              ir_3m: 3,
+            })),
+          },
+        }),
+      );
+    const { fetchImpl, calls } = scriptedFetch([fullPage, fullPage, fullPage, fullPage, fullPage]);
+    const client = new HkmaClient({ fetchImpl, sleep: noSleep });
+
+    const result = await client.fetchTimeSeries('hiborDaily', {
+      dateField: 'end_of_day',
+      oldestNeeded: '1900-01-01', // effectively "give me everything"
+      maxRecords: 250,
+    });
+
+    expect(result.records.length).toBeLessThanOrEqual(250);
+    expect(calls.length).toBeLessThanOrEqual(5);
+  });
+
   it('clamps an oversized pagesize instead of triggering err_code 9999', async () => {
     const { fetchImpl, calls } = scriptedFetch([
       () => jsonResponse(readFixture('register-ais.json')),

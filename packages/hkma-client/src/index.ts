@@ -60,5 +60,26 @@ export {
   TOO_MANY_THRESHOLD,
 } from './locations.js';
 export { canonicaliseCharacters, matchKey, placeKey, strictKey } from './normalise.js';
+export type {
+  HiborTenor,
+  HkdTenor,
+  RateClient,
+  RatePoint,
+  RateSummary,
+  RateType,
+} from './rates.js';
+export {
+  buildHkdSeries,
+  filterRange,
+  isHiborTenor,
+  isHkdTenor,
+  mergeHiborSeries,
+  RAW_ROW_THRESHOLD,
+  RateDateError,
+  ratesFrom,
+  restrictToLatestWhenNoRange,
+  summarise,
+  validateDate,
+} from './rates.js';
 export type { DataSource } from './sources.js';
 export { DATA_SOURCES, findDataSource, HKMA_BASE_URL } from './sources.js';

@@ -169,6 +169,82 @@ export class HkmaClient {
     }
   }
 
+  /**
+   * Fetch a bounded window of a date-ordered time series, newest first.
+   *
+   * `fetchAll` pages until a short page ends the dataset — correct for the
+   * small, finite locator datasets, wrong here: HIBOR daily data goes back to
+   * 1996 (7,000+ records), so "page until exhausted" would issue dozens of
+   * sequential requests and could take minutes. This instead requests newest
+   * records first and stops as soon as either `maxRecords` is reached or the
+   * oldest record fetched is at or before `oldestNeeded` — whichever comes
+   * first — so a "past month" query touches one page, not the whole history.
+   */
+  async fetchTimeSeries<Id extends EndpointId>(
+    endpointId: Id,
+    params: { dateField: string; oldestNeeded?: string; maxRecords?: number } & Omit<
+      QueryParams,
+      'pagesize' | 'offset' | 'sortby' | 'sortorder'
+    >,
+  ): Promise<FetchResult<unknown>> {
+    const { dateField, oldestNeeded, maxRecords = 500, ...rest } = params;
+    const definition = ENDPOINTS[endpointId] as EndpointDefinition<unknown>;
+    const pageSize = definition.maxPageSize;
+    const cacheKey = `series:${definition.id}:${rest.lang ?? this.#options.lang ?? 'en'}:${oldestNeeded ?? ''}:${maxRecords}`;
+
+    const fresh = this.#cache.get<unknown[]>(cacheKey);
+    if (fresh !== undefined) {
+      return {
+        records: fresh.value,
+        stale: false,
+        ageSeconds: fresh.ageSeconds,
+        asOf: new Date(fresh.fetchedAt).toISOString(),
+        sourceId: definition.sourceId,
+      };
+    }
+
+    try {
+      const all: unknown[] = [];
+      for (let offset = 0; all.length < maxRecords; offset += pageSize) {
+        const page = await this.fetch(endpointId, {
+          ...rest,
+          pagesize: pageSize,
+          offset,
+          sortby: dateField,
+          sortorder: 'desc',
+        });
+        all.push(...page.records);
+        if (page.records.length < pageSize) break;
+        if (oldestNeeded !== undefined) {
+          const last = page.records[page.records.length - 1] as Record<string, unknown> | undefined;
+          const lastDate = last?.[dateField];
+          if (typeof lastDate === 'string' && lastDate <= oldestNeeded) break;
+        }
+      }
+      const bounded = all.slice(0, maxRecords);
+      this.#cache.set(cacheKey, bounded, definition.ttlMs);
+      return {
+        records: bounded,
+        stale: false,
+        ageSeconds: 0,
+        asOf: new Date(this.#clock()).toISOString(),
+        sourceId: definition.sourceId,
+      };
+    } catch (error) {
+      const fallback = this.#staleFallback<unknown[]>(cacheKey, error);
+      if (fallback !== undefined) {
+        return {
+          records: fallback.value,
+          stale: true,
+          ageSeconds: fallback.ageSeconds,
+          asOf: new Date(fallback.fetchedAt).toISOString(),
+          sourceId: definition.sourceId,
+        };
+      }
+      throw error;
+    }
+  }
+
   get cache(): TtlCache {
     return this.#cache;
   }
