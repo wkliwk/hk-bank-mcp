@@ -16,6 +16,8 @@
  * "Shum Shui Po District" (Shum/Sham) and "Yau Tsui Mong" (Tsui/Tsim).
  */
 
+import { placeKey } from './normalise.js';
+
 export interface District {
   /** Canonical English name. */
   readonly id: string;
@@ -76,14 +78,7 @@ export const DISTRICTS: readonly District[] = [
  * separators — which is what collapses "ShaTin", "Sha Tin" and "Shatin".
  */
 export function districtKey(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, ' ')
-    .replace(/\s+district$/, '')
-    .replace(/\s*&\s*/g, 'and')
-    .replace(/(?<=central)n(?=western)/, 'and')
-    .replace(/[^a-z0-9一-鿿]/g, '');
+  return placeKey(value);
 }
 
 const BY_KEY = new Map<string, District>();
@@ -126,6 +121,8 @@ export const NEIGHBOURHOODS: Readonly<Record<string, string>> = {
   kennedytown: 'central-western',
   // Wan Chai
   銅鑼灣: 'wan-chai',
+  銅記: 'wan-chai',
+  cwb: 'wan-chai',
   跑馬地: 'wan-chai',
   causewaybay: 'wan-chai',
   happyvalley: 'wan-chai',
@@ -150,6 +147,9 @@ export const NEIGHBOURHOODS: Readonly<Record<string, string>> = {
   // Yau Tsim Mong
   旺角: 'yau-tsim-mong',
   尖沙咀: 'yau-tsim-mong',
+  尖咀: 'yau-tsim-mong',
+  尖沙嘴: 'yau-tsim-mong',
+  mk: 'yau-tsim-mong',
   油麻地: 'yau-tsim-mong',
   佐敦: 'yau-tsim-mong',
   大角咀: 'yau-tsim-mong',

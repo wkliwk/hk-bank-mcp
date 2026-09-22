@@ -25,12 +25,14 @@ export interface Bank {
   readonly aliases: readonly string[];
 }
 
+import { matchKey, strictKey } from './normalise.js';
+
 export const BANKS: readonly Bank[] = [
   {
     id: 'hsbc',
     en: 'The Hongkong and Shanghai Banking Corporation Limited',
     tc: '香港上海滙豐銀行有限公司',
-    aliases: ['hsbc', '滙豐', '匯豐', '滙丰', 'hongkong and shanghai banking'],
+    aliases: ['hsbc', '滙豐', 'hongkong and shanghai banking'],
   },
   {
     id: 'hangseng',
@@ -42,7 +44,7 @@ export const BANKS: readonly Bank[] = [
     id: 'bochk',
     en: 'Bank of China (Hong Kong) Limited',
     tc: '中國銀行(香港)有限公司',
-    aliases: ['boc', 'bochk', 'bank of china', '中銀', '中国银行', '中國銀行'],
+    aliases: ['boc', 'bochk', 'bank of china', '中銀', '中國銀行'],
   },
   {
     id: 'scb',
@@ -148,13 +150,16 @@ export const BANKS: readonly Bank[] = [
   },
 ];
 
-function bankKey(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, ' ').trim();
-}
-
-/** Loose key for substring comparison: punctuation and spacing removed. */
+/**
+ * Comparison key.
+ *
+ * Variant characters, generic words and punctuation are all collapsed by
+ * `matchKey`, so `恆生`, `恒生銀行有限公司` and `恒生bank` reduce to one key without
+ * any of them being listed as an alias. Listing spellings does not scale;
+ * normalising them does.
+ */
 function looseKey(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9一-鿿]/g, '');
+  return matchKey(value);
 }
 
 export interface BankMatch {
@@ -170,20 +175,20 @@ export interface BankMatch {
  * the caller can ask which one was meant instead of silently picking one.
  */
 export function matchBanks(input: string): BankMatch[] {
-  const raw = bankKey(input);
-  if (raw.length === 0) return [];
+  const strict = strictKey(input);
   const loose = looseKey(input);
+  if (strict.length === 0) return [];
 
   const exact: BankMatch[] = [];
   const alias: BankMatch[] = [];
   const partial: BankMatch[] = [];
 
   for (const bank of BANKS) {
-    if (looseKey(bank.en) === loose || looseKey(bank.tc) === loose) {
+    if (strictKey(bank.en) === strict || strictKey(bank.tc) === strict) {
       exact.push({ bank, matchedAs: 'exact' });
       continue;
     }
-    if (bank.aliases.some((a) => looseKey(a) === loose)) {
+    if (bank.aliases.some((a) => strictKey(a) === strict)) {
       alias.push({ bank, matchedAs: 'alias' });
       continue;
     }
@@ -207,8 +212,8 @@ export function resolveBank(input: string): Bank | undefined {
 
 /** Look up the canonical record for a name exactly as the API publishes it. */
 export function bankByPublishedName(name: string): Bank | undefined {
-  const loose = looseKey(name);
-  return BANKS.find((b) => looseKey(b.en) === loose || looseKey(b.tc) === loose);
+  const strict = strictKey(name);
+  return BANKS.find((b) => strictKey(b.en) === strict || strictKey(b.tc) === strict);
 }
 
 export function bankNames(lang: 'en' | 'tc' = 'en'): string[] {

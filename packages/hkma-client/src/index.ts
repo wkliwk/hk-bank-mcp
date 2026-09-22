@@ -56,5 +56,6 @@ export {
   searchLocations,
   TOO_MANY_THRESHOLD,
 } from './locations.js';
+export { canonicaliseCharacters, matchKey, placeKey, strictKey } from './normalise.js';
 export type { DataSource } from './sources.js';
 export { DATA_SOURCES, findDataSource, HKMA_BASE_URL } from './sources.js';
