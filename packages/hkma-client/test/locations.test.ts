@@ -233,6 +233,58 @@ describe('project', () => {
     expect(out).toHaveProperty('address');
   });
 
+  it('keeps the fields that identify a record, not just the ones that describe it', () => {
+    // Three facilities share one Yuen Long address — an i-Teller, a
+    // SupremeGold centre and the branch itself. Trimming branch_name made them
+    // look like duplicate data, and that is how it was reported (#25).
+    const branches = (
+      JSON.parse(readFixture('branch-locator-en.json')) as {
+        result: { records: BankLocation[] };
+      }
+    ).result.records;
+
+    const projected = branches.map((r) => project(r, 'branch', 'concise'));
+    const grouped = new Map<string, string[]>();
+    projected.forEach((row, index) => {
+      const raw = JSON.stringify(branches[index]);
+      const key = `${row.bank}|${row.address}`;
+      const existing = grouped.get(key) ?? [];
+      existing.push(raw);
+      grouped.set(key, existing);
+    });
+
+    // The property that matters: where two raw records differ, their projections
+    // must differ too. The size test cannot see this, which is how the field was
+    // dropped in the first place.
+    projected.forEach((row, index) => {
+      projected.forEach((other, otherIndex) => {
+        if (index >= otherIndex) return;
+        const rawDiffers = JSON.stringify(branches[index]) !== JSON.stringify(branches[otherIndex]);
+        if (!rawDiffers) return;
+        expect(
+          JSON.stringify(row) === JSON.stringify(other),
+          `rows ${index} and ${otherIndex}`,
+        ).toBe(false);
+      });
+    });
+  });
+
+  it('returns branch_name in the concise form, not only detailed', () => {
+    // Detailed is not the default, so putting it there would not have fixed it.
+    const branches = (
+      JSON.parse(readFixture('branch-locator-en.json')) as {
+        result: { records: BankLocation[] };
+      }
+    ).result.records;
+    const withName = branches.find(
+      (r) => typeof r.branch_name === 'string' && r.branch_name !== '',
+    );
+    expect(withName, 'fixture should contain a named branch').toBeDefined();
+    if (withName !== undefined) {
+      expect(project(withName, 'branch', 'concise').branch_name).toBeTruthy();
+    }
+  });
+
   it('is materially smaller than the raw record', () => {
     const raw = JSON.stringify(sample()).length;
     const concise = JSON.stringify(project(sample(), 'atm', 'concise')).length;

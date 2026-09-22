@@ -20,6 +20,8 @@ export interface CachedValue<T> {
   stale: boolean;
   /** Whole seconds since the value was fetched. */
   ageSeconds: number;
+  /** Epoch ms when the upstream was actually read, not when it was served. */
+  fetchedAt: number;
 }
 
 export interface TtlCacheOptions {
@@ -95,6 +97,7 @@ export class TtlCache {
       value: entry.value as T,
       stale,
       ageSeconds: Math.floor((this.#now() - entry.storedAt) / 1000),
+      fetchedAt: entry.storedAt,
     };
   }
 }

@@ -160,11 +160,14 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
       const unavailable: string[] = [];
       let stale = false;
       let maxAgeSeconds = 0;
+      // The oldest source decides: a response is only as current as its stalest part.
+      let oldestAsOf: string | undefined;
 
       for (const type of wanted) {
         try {
           const page = await client.fetchAll(ENDPOINT_BY_TYPE[type], { lang: args.lang });
           sources.push({ type, records: page.records as BankLocation[] });
+          if (oldestAsOf === undefined || page.asOf < oldestAsOf) oldestAsOf = page.asOf;
           if (page.stale) {
             stale = true;
             maxAgeSeconds = Math.max(maxAgeSeconds, page.ageSeconds);
@@ -202,6 +205,7 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
 
         const payload = {
           ...result,
+          ...(oldestAsOf === undefined ? {} : { as_of: oldestAsOf }),
           ...(stale
             ? {
                 stale: true,

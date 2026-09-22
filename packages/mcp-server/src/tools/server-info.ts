@@ -14,6 +14,8 @@ export interface ServerInfo {
     freshness: string;
   }[];
   capabilities: string[];
+  /** When this response was produced. Static data, so it is always now. */
+  as_of: string;
   limitations: string[];
 }
 
@@ -29,6 +31,7 @@ export function buildServerInfo(): ServerInfo {
       freshness: source.freshness,
     })),
     capabilities: ['Report which data sources are configured and how fresh each one is'],
+    as_of: new Date().toISOString(),
     limitations: [
       'Reads published data only — no bank credentials, no login, no account balances',
       'Published rates are indicative and are not an offer or financial advice',

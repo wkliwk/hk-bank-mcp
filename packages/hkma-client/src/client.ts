@@ -11,6 +11,11 @@ import { type FetchOptions, fetchPage } from './http.js';
 
 export interface HkmaClientOptions extends FetchOptions {
   cache?: TtlCache;
+  /**
+   * Clock used to stamp `asOf`. Must be the same clock the cache uses, or a
+   * cache hit will report an age the timestamp contradicts.
+   */
+  now?: () => number;
   /** Default language for endpoints that support it. */
   lang?: 'en' | 'tc' | 'sc';
   /**
@@ -27,6 +32,14 @@ export interface FetchResult<T> {
   stale: boolean;
   /** Seconds since the data was fetched. Zero for a live response. */
   ageSeconds: number;
+  /**
+   * When the upstream was actually read, as an ISO timestamp.
+   *
+   * On a cache hit this is the original fetch, not now — otherwise a value
+   * served from a 20-hour-old entry would present itself as current, which is
+   * exactly the confusion the server instructions tell the model to avoid.
+   */
+  asOf: string;
   /** Data source id, so callers can attribute the figure. */
   sourceId: string;
 }
@@ -40,9 +53,11 @@ export interface FetchResult<T> {
 export class HkmaClient {
   readonly #cache: TtlCache;
   readonly #options: HkmaClientOptions;
+  readonly #clock: () => number;
 
   constructor(options: HkmaClientOptions = {}) {
-    this.#cache = options.cache ?? new TtlCache();
+    this.#clock = options.now ?? Date.now;
+    this.#cache = options.cache ?? new TtlCache({ now: this.#clock });
     this.#options = options;
   }
 
@@ -64,6 +79,7 @@ export class HkmaClient {
         records: fresh.value,
         stale: false,
         ageSeconds: fresh.ageSeconds,
+        asOf: new Date(fresh.fetchedAt).toISOString(),
         sourceId: definition.sourceId,
       };
     }
@@ -72,7 +88,13 @@ export class HkmaClient {
       const page = await fetchPage(url, this.#options);
       const records = page.records.map((record) => definition.schema.parse(record));
       this.#cache.set(url, records, definition.ttlMs);
-      return { records, stale: false, ageSeconds: 0, sourceId: definition.sourceId };
+      return {
+        records,
+        stale: false,
+        ageSeconds: 0,
+        asOf: new Date(this.#clock()).toISOString(),
+        sourceId: definition.sourceId,
+      };
     } catch (error) {
       const fallback = this.#staleFallback<unknown[]>(url, error);
       if (fallback !== undefined) {
@@ -80,6 +102,7 @@ export class HkmaClient {
           records: fallback.value,
           stale: true,
           ageSeconds: fallback.ageSeconds,
+          asOf: new Date(fallback.fetchedAt).toISOString(),
           sourceId: definition.sourceId,
         };
       }
@@ -110,6 +133,7 @@ export class HkmaClient {
         records: fresh.value,
         stale: false,
         ageSeconds: fresh.ageSeconds,
+        asOf: new Date(fresh.fetchedAt).toISOString(),
         sourceId: definition.sourceId,
       };
     }
@@ -123,7 +147,13 @@ export class HkmaClient {
         if (page.records.length < pageSize) break;
       }
       this.#cache.set(cacheKey, all, definition.ttlMs);
-      return { records: all, stale: false, ageSeconds: 0, sourceId: definition.sourceId };
+      return {
+        records: all,
+        stale: false,
+        ageSeconds: 0,
+        asOf: new Date(this.#clock()).toISOString(),
+        sourceId: definition.sourceId,
+      };
     } catch (error) {
       const fallback = this.#staleFallback<unknown[]>(cacheKey, error);
       if (fallback !== undefined) {
@@ -131,6 +161,7 @@ export class HkmaClient {
           records: fallback.value,
           stale: true,
           ageSeconds: fallback.ageSeconds,
+          asOf: new Date(fallback.fetchedAt).toISOString(),
           sourceId: definition.sourceId,
         };
       }

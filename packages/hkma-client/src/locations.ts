@@ -18,6 +18,12 @@ export interface ResolvedLocation {
   district: string;
   address: string;
   type: LocationType;
+  /**
+   * What this facility is called — "Yuen Long Branch", "Yuen Long i-Teller".
+   * Identity, not detail: three facilities can share one address and differ
+   * only here, so trimming it made them indistinguishable (#25).
+   */
+  branch_name?: string;
   service_hours?: string;
   /** Distance in km, present only when the search had a reference point. */
   distance_km?: number;
@@ -147,6 +153,12 @@ export function project(
     address: str(record.address),
     type,
   };
+  const branchName = str((record as Record<string, unknown>).branch_name);
+  if (branchName) out.branch_name = branchName;
+  // Same reasoning as branch_name: at one address this is what separates a
+  // cash machine from a deposit machine, so it identifies rather than decorates.
+  const machineType = str((record as Record<string, unknown>).type_of_machine);
+  if (machineType) out.machine_type = machineType;
   const hours = str(record.service_hours);
   if (hours) out.service_hours = hours;
   if (distanceKm !== undefined) out.distance_km = Math.round(distanceKm * 100) / 100;
@@ -157,7 +169,6 @@ export function project(
       ['currencies', str((record as Record<string, unknown>).currencies_supported)],
       ['network', str((record as Record<string, unknown>).network)],
       ['barrier_free', str((record as Record<string, unknown>)['barrier-free_access'])],
-      ['machine_type', str((record as Record<string, unknown>).type_of_machine)],
     ];
     for (const [key, value] of extras) {
       if (value) (out as unknown as Record<string, unknown>)[key] = value;

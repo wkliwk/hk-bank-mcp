@@ -57,6 +57,63 @@ describe('HkmaClient', () => {
     expect(second.records).toEqual(first.records);
   });
 
+  it('reports as_of as the original fetch, not the moment it was served', async () => {
+    // The bug this prevents is silent: a value served from a 20-hour-old cache
+    // entry presenting itself as current. The server instructions tell the
+    // model every figure carries as_of, so as_of must mean what it says.
+    let clock = Date.parse('2026-09-22T09:00:00Z');
+    const cache = new TtlCache({ now: () => clock });
+    const { fetchImpl, calls } = scriptedFetch([atmOk, atmOk]);
+    const client = new HkmaClient({ fetchImpl, sleep: noSleep, cache, now: () => clock });
+
+    const first = await client.fetch('atmLocator', { pagesize: 20 });
+    expect(first.asOf).toBe('2026-09-22T09:00:00.000Z');
+
+    // Twenty hours later, still inside the 24h locator TTL.
+    clock += 20 * 60 * 60 * 1000;
+    const second = await client.fetch('atmLocator', { pagesize: 20 });
+
+    expect(calls).toHaveLength(1);
+    expect(second.stale).toBe(false);
+    expect(second.asOf).toBe('2026-09-22T09:00:00.000Z');
+    expect(second.ageSeconds).toBe(20 * 60 * 60);
+  });
+
+  it('keeps as_of and ageSeconds consistent with each other', async () => {
+    let clock = Date.parse('2026-09-22T09:00:00Z');
+    const cache = new TtlCache({ now: () => clock });
+    const { fetchImpl } = scriptedFetch([atmOk]);
+    const client = new HkmaClient({ fetchImpl, sleep: noSleep, cache, now: () => clock });
+
+    await client.fetch('atmLocator', { pagesize: 20 });
+    clock += 3 * 60 * 60 * 1000;
+    const cached = await client.fetch('atmLocator', { pagesize: 20 });
+
+    // A caller can derive one from the other; if they disagree, one is lying.
+    const derived = (clock - Date.parse(cached.asOf)) / 1000;
+    expect(cached.ageSeconds).toBe(derived);
+  });
+
+  it('reports as_of from the original fetch when serving stale data', async () => {
+    let clock = Date.parse('2026-09-22T09:00:00Z');
+    const cache = new TtlCache({ now: () => clock });
+    const { fetchImpl } = scriptedFetch([atmOk, timeoutStep]);
+    const client = new HkmaClient({
+      fetchImpl,
+      sleep: noSleep,
+      cache,
+      maxRetries: 1,
+      now: () => clock,
+    });
+
+    await client.fetch('atmLocator', { pagesize: 20 });
+    clock += 30 * 60 * 60 * 1000;
+    const stale = await client.fetch('atmLocator', { pagesize: 20 });
+
+    expect(stale.stale).toBe(true);
+    expect(stale.asOf).toBe('2026-09-22T09:00:00.000Z');
+  });
+
   it('throws when the upstream is down and nothing is cached to fall back on', async () => {
     const { fetchImpl } = scriptedFetch([timeoutStep]);
     const client = new HkmaClient({ fetchImpl, sleep: noSleep, maxRetries: 1 });
