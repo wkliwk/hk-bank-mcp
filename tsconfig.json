@@ -1,0 +1,4 @@
+{
+  "files": [],
+  "references": [{ "path": "./packages/hkma-client" }, { "path": "./packages/mcp-server" }]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "hk-bank-mcp-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server for Hong Kong banking data \u2014 HKMA public APIs + cross-bank product comparison",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.5.1",
+  "scripts": {
+    "build": "pnpm -r build",
+    "clean": "pnpm -r exec rm -rf dist *.tsbuildinfo",
+    "typecheck": "tsc --build --force",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "pnpm lint && pnpm typecheck && pnpm build && pnpm test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  }
+}
