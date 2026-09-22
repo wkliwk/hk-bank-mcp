@@ -1,0 +1,170 @@
+import { type CachedValue, TtlCache } from './cache.js';
+import {
+  buildUrl,
+  ENDPOINTS,
+  type EndpointDefinition,
+  type EndpointId,
+  type QueryParams,
+} from './endpoints.js';
+import { HkmaError } from './errors.js';
+import { type FetchOptions, fetchPage } from './http.js';
+
+export interface HkmaClientOptions extends FetchOptions {
+  cache?: TtlCache;
+  /** Default language for endpoints that support it. */
+  lang?: 'en' | 'tc' | 'sc';
+  /**
+   * Serve an expired cached value when every retry has failed. On by default:
+   * the upstream is unreliable enough (issue #1) that a labelled stale figure
+   * beats an error for almost every question a user asks.
+   */
+  staleOnError?: boolean;
+}
+
+export interface FetchResult<T> {
+  records: T[];
+  /** True when served from cache past its TTL because the upstream failed. */
+  stale: boolean;
+  /** Seconds since the data was fetched. Zero for a live response. */
+  ageSeconds: number;
+  /** Data source id, so callers can attribute the figure. */
+  sourceId: string;
+}
+
+/**
+ * Client for the HKMA public API.
+ *
+ * Deliberately has no knowledge of MCP — it is a plain library so it stays
+ * usable on its own, and so the protocol layer can be tested separately.
+ */
+export class HkmaClient {
+  readonly #cache: TtlCache;
+  readonly #options: HkmaClientOptions;
+
+  constructor(options: HkmaClientOptions = {}) {
+    this.#cache = options.cache ?? new TtlCache();
+    this.#options = options;
+  }
+
+  /**
+   * Fetch one page, using the cache when fresh and falling back to a stale entry
+   * when the upstream is down.
+   */
+  async fetch<Id extends EndpointId>(
+    endpointId: Id,
+    params: QueryParams = {},
+  ): Promise<FetchResult<unknown>> {
+    const definition = ENDPOINTS[endpointId] as EndpointDefinition<unknown>;
+    const effective = this.#applyDefaults(definition, params);
+    const url = buildUrl(definition, effective);
+
+    const fresh = this.#cache.get<unknown[]>(url);
+    if (fresh !== undefined) {
+      return {
+        records: fresh.value,
+        stale: false,
+        ageSeconds: fresh.ageSeconds,
+        sourceId: definition.sourceId,
+      };
+    }
+
+    try {
+      const page = await fetchPage(url, this.#options);
+      const records = page.records.map((record) => definition.schema.parse(record));
+      this.#cache.set(url, records, definition.ttlMs);
+      return { records, stale: false, ageSeconds: 0, sourceId: definition.sourceId };
+    } catch (error) {
+      const fallback = this.#staleFallback<unknown[]>(url, error);
+      if (fallback !== undefined) {
+        return {
+          records: fallback.value,
+          stale: true,
+          ageSeconds: fallback.ageSeconds,
+          sourceId: definition.sourceId,
+        };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Read an entire dataset by paging with `offset`.
+   *
+   * Necessary because the API reports no total count — `datasize` is the size of
+   * the page returned — so the only way to know a dataset is exhausted is to read
+   * until a short page comes back. Datasets are small (the largest locator is
+   * about 2,000 records) and cached for a day, so this runs rarely.
+   */
+  async fetchAll<Id extends EndpointId>(
+    endpointId: Id,
+    params: Omit<QueryParams, 'pagesize' | 'offset'> = {},
+    maxRecords = 10_000,
+  ): Promise<FetchResult<unknown>> {
+    const definition = ENDPOINTS[endpointId] as EndpointDefinition<unknown>;
+    const pageSize = definition.maxPageSize;
+    const cacheKey = `all:${definition.id}:${params.lang ?? this.#options.lang ?? 'en'}`;
+
+    const fresh = this.#cache.get<unknown[]>(cacheKey);
+    if (fresh !== undefined) {
+      return {
+        records: fresh.value,
+        stale: false,
+        ageSeconds: fresh.ageSeconds,
+        sourceId: definition.sourceId,
+      };
+    }
+
+    try {
+      const all: unknown[] = [];
+      for (let offset = 0; all.length < maxRecords; offset += pageSize) {
+        const page = await this.fetch(endpointId, { ...params, pagesize: pageSize, offset });
+        all.push(...page.records);
+        // A page smaller than requested means there is nothing left to read.
+        if (page.records.length < pageSize) break;
+      }
+      this.#cache.set(cacheKey, all, definition.ttlMs);
+      return { records: all, stale: false, ageSeconds: 0, sourceId: definition.sourceId };
+    } catch (error) {
+      const fallback = this.#staleFallback<unknown[]>(cacheKey, error);
+      if (fallback !== undefined) {
+        return {
+          records: fallback.value,
+          stale: true,
+          ageSeconds: fallback.ageSeconds,
+          sourceId: definition.sourceId,
+        };
+      }
+      throw error;
+    }
+  }
+
+  get cache(): TtlCache {
+    return this.#cache;
+  }
+
+  #applyDefaults(definition: EndpointDefinition<unknown>, params: QueryParams): QueryParams {
+    const lang = params.lang ?? this.#options.lang ?? 'en';
+    const requested = params.pagesize;
+    // Clamp rather than reject: exceeding the ceiling returns err_code 9999,
+    // and a silently smaller page is a far better outcome than a failed call.
+    const pagesize =
+      requested === undefined
+        ? undefined
+        : Math.min(Math.max(1, requested), definition.maxPageSize);
+    return {
+      ...params,
+      ...(definition.supportsLang ? { lang } : {}),
+      ...(pagesize === undefined ? {} : { pagesize }),
+    };
+  }
+
+  /**
+   * Stale data is only an acceptable answer when the upstream genuinely failed.
+   * A malformed request must surface as an error, not be masked by old data.
+   */
+  #staleFallback<T>(key: string, error: unknown): CachedValue<T> | undefined {
+    if (this.#options.staleOnError === false) return undefined;
+    if (!(error instanceof HkmaError) || !error.isTransient) return undefined;
+    return this.#cache.getStale<T>(key);
+  }
+}
