@@ -4,13 +4,16 @@ export type { CachedValue, CacheEntry, TtlCacheOptions } from './cache.js';
 export { TTL, TtlCache } from './cache.js';
 export type { FetchResult, HkmaClientOptions } from './client.js';
 export { HkmaClient } from './client.js';
-export type { District } from './districts.js';
+export type { District, Neighbourhood } from './districts.js';
 export {
+  DISTRICT_IDS,
   DISTRICTS,
+  districtById,
   districtKey,
   districtNames,
   NEIGHBOURHOODS,
   resolveDistrict,
+  resolveNeighbourhood,
   resolvePlace,
 } from './districts.js';
 export type {

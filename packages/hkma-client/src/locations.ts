@@ -1,6 +1,13 @@
 import { type Bank, bankByPublishedName, bankNames, matchBanks } from './banks.js';
-import { type District, districtNames, resolvePlace } from './districts.js';
+import {
+  type District,
+  districtById,
+  districtNames,
+  resolveNeighbourhood,
+  resolvePlace,
+} from './districts.js';
 import type { BankLocation } from './endpoints.js';
+import { placeKey } from './normalise.js';
 
 export type LocationType = 'atm' | 'branch' | 'self_service';
 export type ResponseFormat = 'concise' | 'detailed';
@@ -19,6 +26,8 @@ export interface ResolvedLocation {
   network?: string;
   barrier_free?: string;
   machine_type?: string;
+  /** Present when a neighbourhood label was supplied. */
+  place_match?: 'label' | 'elsewhere';
 }
 
 export interface Coordinates {
@@ -28,7 +37,19 @@ export interface Coordinates {
 
 export interface LocationQuery {
   type?: LocationType | 'any';
-  /** District or neighbourhood, English or Chinese. */
+  /**
+   * Canonical district ids. The caller — in practice the model — maps whatever
+   * the user said onto these, which it does far better than a table here can:
+   * 16/16 against 3/11 in measurement, including old names and slang.
+   */
+  districts?: readonly string[];
+  /**
+   * What the user actually called the place, e.g. 旺角 when the districts are
+   * ["yau-tsim-mong"]. Never used to filter — only to rank results within the
+   * district and to say plainly that the search covered the wider area.
+   */
+  placeLabel?: string;
+  /** District or neighbourhood as free text. Resolved here when given. */
   place?: string;
   bank?: string;
   /** Substring match against the currencies field, e.g. "RMB". */
@@ -59,6 +80,7 @@ export interface LocationResult {
   narrow_hint?: string;
   /** Set when a neighbourhood was translated to its district. */
   resolved_place?: string;
+  searched_districts?: string[];
 }
 
 export class LocationQueryError extends Error {
@@ -111,6 +133,7 @@ export function project(
   format: ResponseFormat,
   distanceKm?: number,
   lang: 'en' | 'tc' = 'en',
+  placeMatch?: 'label' | 'elsewhere',
 ): ResolvedLocation {
   const bankRecord = bankByPublishedName(str(record.bank_name));
   const districtRecord = resolvePlace(str(record.district))?.district;
@@ -127,6 +150,7 @@ export function project(
   const hours = str(record.service_hours);
   if (hours) out.service_hours = hours;
   if (distanceKm !== undefined) out.distance_km = Math.round(distanceKm * 100) / 100;
+  if (placeMatch !== undefined) out.place_match = placeMatch;
 
   if (format === 'detailed') {
     const extras: [keyof ResolvedLocation, string][] = [
@@ -156,7 +180,14 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
   const format = query.format ?? 'concise';
   const limit = Math.min(Math.max(1, query.limit ?? LIMIT_DEFAULT), LIMIT_MAX);
 
-  let district: District | undefined;
+  if (query.districts !== undefined && query.districts.length === 0) {
+    throw new LocationQueryError(
+      'districts must contain at least one district id.',
+      "Omit districts to search all of Hong Kong, or provide every district id the user's region covers.",
+    );
+  }
+
+  let districts: District[] = [];
   let resolvedPlace: string | undefined;
   if (query.place !== undefined && query.place.trim() !== '') {
     const place = resolvePlace(query.place);
@@ -168,11 +199,28 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
         districtNamesFor(lang),
       );
     }
-    district = place.district;
+    districts = [place.district];
     if (place.matchedAs === 'neighbourhood') {
-      resolvedPlace = `${query.place} is in ${lang === 'tc' ? district.tc : district.en}`;
+      resolvedPlace = `${query.place} is in ${lang === 'tc' ? place.district.tc : place.district.en}`;
     }
   }
+
+  if (query.districts !== undefined) {
+    districts = query.districts.map((id) => {
+      const district = districtById(id);
+      if (district === undefined) {
+        throw new LocationQueryError(
+          `Unknown district id: ${id}.`,
+          'Use one of the canonical district ids provided by the tool schema.',
+          DISTRICT_IDS_FOR_ERROR,
+        );
+      }
+      return district;
+    });
+  }
+  const districtIds = new Set(districts.map((d) => d.id));
+  const placeLabel = query.placeLabel?.trim() || query.place?.trim() || undefined;
+  const labelKeys = placeLabel === undefined ? [] : placeKeys(placeLabel);
 
   let bank: Bank | undefined;
   if (query.bank !== undefined && query.bank.trim() !== '') {
@@ -198,12 +246,18 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
   const wantedType = query.type ?? 'any';
   const currency = query.currency?.toLowerCase().trim();
 
-  const matched: { record: BankLocation; type: LocationType; distance?: number }[] = [];
+  const matched: {
+    record: BankLocation;
+    type: LocationType;
+    distance?: number;
+    placeMatch: boolean;
+  }[] = [];
   for (const source of sources) {
     if (wantedType !== 'any' && source.type !== wantedType) continue;
     for (const record of source.records) {
-      if (district !== undefined) {
-        if (resolvePlace(str(record.district))?.district.id !== district.id) continue;
+      const recordDistrict = resolvePlace(str(record.district))?.district;
+      if (districts.length > 0) {
+        if (recordDistrict === undefined || !districtIds.has(recordDistrict.id)) continue;
       }
       if (bank !== undefined) {
         if (bankByPublishedName(str(record.bank_name))?.id !== bank.id) continue;
@@ -223,17 +277,28 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
       }
       matched.push(
         distance === undefined
-          ? { record, type: source.type }
-          : { record, type: source.type, distance },
+          ? {
+              record,
+              type: source.type,
+              placeMatch: placeMatch(record, labelKeys),
+            }
+          : {
+              record,
+              type: source.type,
+              distance,
+              placeMatch: placeMatch(record, labelKeys),
+            },
       );
     }
   }
 
   const total = matched.length;
 
-  if (query.near !== undefined) {
-    matched.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-  }
+  matched.sort((a, b) => {
+    const byPlace = (b.placeMatch ? 1 : 0) - (a.placeMatch ? 1 : 0);
+    if (byPlace !== 0) return byPlace;
+    return query.near === undefined ? 0 : (a.distance ?? Infinity) - (b.distance ?? Infinity);
+  });
 
   // Refusing beats truncating silently: a caller that cannot see it is missing
   // results will answer confidently and wrongly.
@@ -247,30 +312,82 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
         'Add a filter before retrying: place (district or neighbourhood), bank, ' +
         'currency, or near + radius_km for the closest ones.',
       ...(resolvedPlace === undefined ? {} : { resolved_place: resolvedPlace }),
+      ...(districts.length === 0 ? {} : { searched_districts: districts.map((d) => d.id) }),
     };
   }
 
   const page = matched.slice(0, limit);
-  const results = page.map((m) => project(m.record, m.type, format, m.distance, lang));
+  const results = page.map((m) =>
+    project(
+      m.record,
+      m.type,
+      format,
+      m.distance,
+      lang,
+      m.placeMatch ? 'label' : placeLabel ? 'elsewhere' : undefined,
+    ),
+  );
 
   return {
-    summary: buildSummary(total, results.length, { district, bank, wantedType, query, lang }),
+    summary: buildSummary(total, results.length, {
+      districts,
+      bank,
+      wantedType,
+      query,
+      lang,
+      labelMatchCount: matched.filter((m) => m.placeMatch).length,
+    }),
     total_matches: total,
     showing: results.length,
     results,
     ...(resolvedPlace === undefined ? {} : { resolved_place: resolvedPlace }),
+    ...(districts.length === 0 ? {} : { searched_districts: districts.map((d) => d.id) }),
   };
+}
+
+const DISTRICT_IDS_FOR_ERROR = [
+  'central-western',
+  'wan-chai',
+  'eastern',
+  'southern',
+  'yau-tsim-mong',
+  'sham-shui-po',
+  'kowloon-city',
+  'wong-tai-sin',
+  'kwun-tong',
+  'kwai-tsing',
+  'tsuen-wan',
+  'tuen-mun',
+  'yuen-long',
+  'north',
+  'tai-po',
+  'sha-tin',
+  'sai-kung',
+  'islands',
+];
+
+function placeKeys(label: string): string[] {
+  const neighbourhood = resolveNeighbourhood(label);
+  const names = neighbourhood?.names ?? [label];
+  return names.map(placeKey).filter((key, index, all) => key !== '' && all.indexOf(key) === index);
+}
+
+function placeMatch(record: BankLocation, keys: readonly string[]): boolean {
+  if (keys.length === 0) return false;
+  const address = placeKey(str(record.address));
+  return keys.some((key) => address.includes(key));
 }
 
 function buildSummary(
   total: number,
   showing: number,
   ctx: {
-    district: District | undefined;
+    districts: District[];
     bank: Bank | undefined;
     wantedType: LocationType | 'any';
     query: LocationQuery;
     lang: 'en' | 'tc';
+    labelMatchCount: number;
   },
 ): string {
   if (total === 0) {
@@ -286,11 +403,22 @@ function buildSummary(
           : 'locations';
   const parts: string[] = [`${total} ${noun}`];
   if (ctx.bank !== undefined) parts.push(`at ${ctx.lang === 'tc' ? ctx.bank.tc : ctx.bank.en}`);
-  if (ctx.district !== undefined)
-    parts.push(`in ${ctx.lang === 'tc' ? ctx.district.tc : ctx.district.en}`);
+  if (ctx.districts.length === 1) {
+    const district = ctx.districts[0];
+    if (district !== undefined) parts.push(`in ${ctx.lang === 'tc' ? district.tc : district.en}`);
+  } else if (ctx.districts.length > 1) {
+    parts.push(`across ${ctx.districts.length} districts`);
+  }
   if (ctx.query.currency !== undefined && ctx.query.currency !== '')
     parts.push(`supporting ${ctx.query.currency.toUpperCase()}`);
   if (ctx.query.near !== undefined) parts.push('sorted by distance');
+  if (ctx.query.placeLabel !== undefined && ctx.districts.length === 1) {
+    const district = ctx.districts[0];
+    if (district !== undefined) {
+      const districtName = ctx.lang === 'tc' ? district.tc : district.en;
+      return `${ctx.labelMatchCount} in ${ctx.query.placeLabel}, ${total - ctx.labelMatchCount} elsewhere in ${districtName}${showing < total ? `, showing the first ${showing}` : ''}.`;
+    }
+  }
   const shown = showing < total ? `, showing the first ${showing}` : '';
   return `${parts.join(' ')}${shown}.`;
 }

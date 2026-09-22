@@ -34,6 +34,18 @@ describe('hk_find_bank_location input contract', () => {
     expect(inputSchema.safeParse({ place: '旺角', type: 'branch' }).success).toBe(true);
   });
 
+  it('accepts multiple district ids and a user-facing place label', () => {
+    const result = inputSchema.safeParse({
+      districts: ['yau-tsim-mong', 'sham-shui-po'],
+      place_label: '九龍',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects an empty district list', () => {
+    expect(inputSchema.safeParse({ districts: [] }).success).toBe(false);
+  });
+
   it('rejects a language the model is likely to guess', () => {
     // "zh-Hant" was the model's first attempt; the enum rejected it and the
     // model corrected itself on the next call. That is the behaviour wanted

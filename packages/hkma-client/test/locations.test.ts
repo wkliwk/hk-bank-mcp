@@ -33,6 +33,40 @@ describe('searchLocations', () => {
     expect(result.total_matches).toBeGreaterThan(0);
   });
 
+  it('ranks address matches for a labelled neighbourhood before the rest of its district', () => {
+    const records = atmRecords();
+    const mongKok = records.find((r) => r.address?.includes('Mongkok'));
+    const jordan = records.find((r) => r.address?.includes('Jordan'));
+    if (mongKok === undefined || jordan === undefined) throw new Error('fixture missing rows');
+    const result = searchLocations([{ type: 'atm', records: [jordan, mongKok] }], {
+      districts: ['yau-tsim-mong'],
+      placeLabel: '旺角',
+      limit: 2,
+      lang: 'tc',
+    });
+
+    expect(result.results[0]?.address).toContain('Mongkok');
+    expect(result.summary).toMatch(/1 in 旺角, 1 elsewhere in 油尖旺區/);
+    expect(result.results[0]?.place_match).toBe('label');
+    expect(result.results[1]?.place_match).toBe('elsewhere');
+  });
+
+  it('merges multiple district ids and reports how many districts were searched', () => {
+    const result = searchLocations(atmSource(), {
+      districts: ['yau-tsim-mong', 'sham-shui-po'],
+      limit: 1,
+      lang: 'tc',
+    });
+
+    expect(result.total_matches).toBeGreaterThan(0);
+    expect(result.searched_districts).toEqual(['yau-tsim-mong', 'sham-shui-po']);
+    expect(result.summary).toMatch(/2 districts/);
+  });
+
+  it('rejects an empty district id list', () => {
+    expect(() => searchLocations(atmSource(), { districts: [] })).toThrow(LocationQueryError);
+  });
+
   it('filters by bank using a short form', () => {
     const result = searchLocations(atmSource(), { bank: '恒生', limit: 50 });
     expect(result.total_matches).toBeGreaterThan(0);
@@ -113,6 +147,66 @@ describe('searchLocations', () => {
     const result = searchLocations(atmSource(), { place: '離島區', bank: '集友', currency: 'JPY' });
     expect(result.total_matches).toBe(0);
     expect(result.summary).toMatch(/No locations/);
+  });
+});
+
+describe('district ids and neighbourhood ranking', () => {
+  it('ranks the named neighbourhood above the rest of its district', () => {
+    // Without this, asking about 旺角 answers with Tsim Sha Tsui: both are in
+    // Yau Tsim Mong, and the raw order decides what the user is told.
+    const result = searchLocations(atmSource(), {
+      districts: ['yau-tsim-mong'],
+      placeLabel: '旺角',
+      limit: 6,
+    });
+    const isMongKok = (address: string) => /mongkok|mong kok|旺角/i.test(address);
+    const flags = result.results.map((r) => isMongKok(r.address));
+    const firstFalse = flags.indexOf(false);
+    // Every Mong Kok row must come before every non-Mong Kok row.
+    if (firstFalse !== -1) expect(flags.slice(firstFalse).some(Boolean)).toBe(false);
+    expect(flags[0]).toBe(true);
+  });
+
+  it('says how many are in the named place and how many merely in the district', () => {
+    const result = searchLocations(atmSource(), {
+      districts: ['yau-tsim-mong'],
+      placeLabel: '旺角',
+      limit: 6,
+    });
+    expect(result.summary).toMatch(/旺角/);
+    expect(result.summary).toMatch(/elsewhere/i);
+  });
+
+  it('searches several districts at once for a region', () => {
+    const kowloon = ['yau-tsim-mong', 'sham-shui-po', 'kowloon-city', 'wong-tai-sin', 'kwun-tong'];
+    const result = searchLocations(atmSource(), { districts: kowloon, placeLabel: '九龍' });
+    expect(result.searched_districts).toHaveLength(5);
+    expect(result.summary).toMatch(/5 districts/);
+  });
+
+  it('rejects an empty district list rather than reading it as everywhere', () => {
+    // A caller that means everywhere omits the parameter.
+    expect(() => searchLocations(atmSource(), { districts: [] })).toThrow(LocationQueryError);
+  });
+
+  it('rejects an unknown district id and lists the valid ones', () => {
+    try {
+      searchLocations(atmSource(), { districts: ['mars'] });
+      expect.unreachable('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(LocationQueryError);
+      expect((error as LocationQueryError).candidates).toHaveLength(18);
+    }
+  });
+
+  it('treats the label as ranking only, never as a filter', () => {
+    // A label the table does not know must not shrink the result set.
+    const withLabel = searchLocations(atmSource(), {
+      districts: ['yau-tsim-mong'],
+      placeLabel: '某個唔存在嘅地方',
+    });
+    const withoutLabel = searchLocations(atmSource(), { districts: ['yau-tsim-mong'] });
+    expect(withLabel.total_matches).toBe(withoutLabel.total_matches);
   });
 });
 

@@ -12,6 +12,27 @@ import {
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
+const DISTRICT_IDS = [
+  'central-western',
+  'wan-chai',
+  'eastern',
+  'southern',
+  'yau-tsim-mong',
+  'sham-shui-po',
+  'kowloon-city',
+  'wong-tai-sin',
+  'kwun-tong',
+  'kwai-tsing',
+  'tsuen-wan',
+  'tuen-mun',
+  'yuen-long',
+  'north',
+  'tai-po',
+  'sha-tin',
+  'sai-kung',
+  'islands',
+] as const;
+
 const ENDPOINT_BY_TYPE = {
   atm: 'atmLocator',
   branch: 'branchLocator',
@@ -42,6 +63,21 @@ const inputShape = {
       'District or neighbourhood, English or Chinese. Accepts what people actually say — ' +
         '"Mong Kok", "旺角", "Causeway Bay", "沙田", "TST" — not just the 18 official ' +
         'district names. Omit to search all of Hong Kong. Alias: district.',
+    ),
+  districts: z
+    .array(z.enum(DISTRICT_IDS))
+    .nonempty()
+    .optional()
+    .describe(
+      "Canonical district ids selected from the user's place. Map neighbourhoods, malls, estates " +
+        'and slang yourself; return every district for a region such as 九龍, 港島 or 新界. ' +
+        'Omit for all Hong Kong. Do not pass an empty array.',
+    ),
+  place_label: z
+    .string()
+    .optional()
+    .describe(
+      'The place exactly as the user said it, such as 旺角 or 太子; used to rank matching addresses.',
     ),
   district: z.string().optional().describe('Alias for place.'),
   service_type: z
@@ -108,6 +144,9 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
         'Examples:\n' +
         '- "邊度有恒生分行喺沙田?" → {type:"branch", place:"沙田", bank:"恒生"}\n' +
         '- "Closest ATM that takes RMB?" → {type:"atm", currency:"RMB", near:{lat:22.28,lon:114.16}}\n\n' +
+        'For natural-language places, map the place to every covering district id in districts, ' +
+        'and preserve the user wording in place_label. A neighbourhood uses one district; a region ' +
+        'such as 九龍, 港島 or 新界 can use several.\n\n' +
         'Use hk_get_bank_contact instead when the user wants a phone number rather than a place.',
       inputSchema,
       annotations: { readOnlyHint: true, openWorldHint: true },
@@ -150,6 +189,8 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
         const result = searchLocations(sources, {
           type,
           ...(place === undefined ? {} : { place }),
+          ...(args.districts === undefined ? {} : { districts: args.districts }),
+          ...(args.place_label === undefined ? {} : { placeLabel: args.place_label }),
           ...(args.bank === undefined ? {} : { bank: args.bank }),
           ...(args.currency === undefined ? {} : { currency: args.currency }),
           ...(args.near === undefined ? {} : { near: args.near }),
