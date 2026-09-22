@@ -18,7 +18,16 @@ const ENDPOINT_BY_TYPE = {
   self_service: 'selfServiceLocator',
 } as const satisfies Record<LocationType, string>;
 
-const inputSchema = {
+/**
+ * Accepted parameter names.
+ *
+ * `district` and `service_type` are aliases for `place` and `type`. They are
+ * not stylistic alternatives — they are the names the model actually produces
+ * when asked a natural question, verified by capturing real tool calls (#22).
+ * A name that reads well in isolation is worth nothing if the caller reaches
+ * for a different one.
+ */
+const inputShape = {
   type: z
     .enum(['atm', 'branch', 'self_service', 'any'])
     .default('any')
@@ -32,8 +41,13 @@ const inputSchema = {
     .describe(
       'District or neighbourhood, English or Chinese. Accepts what people actually say — ' +
         '"Mong Kok", "旺角", "Causeway Bay", "沙田", "TST" — not just the 18 official ' +
-        'district names. Omit to search all of Hong Kong.',
+        'district names. Omit to search all of Hong Kong. Alias: district.',
     ),
+  district: z.string().optional().describe('Alias for place.'),
+  service_type: z
+    .enum(['atm', 'branch', 'self_service', 'any'])
+    .optional()
+    .describe('Alias for type.'),
   bank: z
     .string()
     .optional()
@@ -69,6 +83,17 @@ const inputSchema = {
   lang: z.enum(['en', 'tc']).default('en').describe('Language for names. "tc" for Chinese.'),
 };
 
+/**
+ * Strict, so an unrecognised parameter is rejected rather than silently
+ * dropped.
+ *
+ * Dropping is the dangerous default: a filter the user asked for disappears,
+ * the call still succeeds, and the model presents an unfiltered answer with no
+ * way to know. An error, by contrast, is something the model corrects on the
+ * next call — which is exactly what it already does for a bad enum value.
+ */
+export const inputSchema = z.object(inputShape).strict();
+
 export function registerFindBankLocation(server: McpServer, client: HkmaClient): void {
   server.registerTool(
     'hk_find_bank_location',
@@ -88,8 +113,9 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
       annotations: { readOnlyHint: true, openWorldHint: true },
     },
     async (args) => {
-      const wanted: LocationType[] =
-        args.type === 'any' ? ['atm', 'branch', 'self_service'] : [args.type];
+      const place = args.place ?? args.district;
+      const type = args.service_type ?? args.type;
+      const wanted: LocationType[] = type === 'any' ? ['atm', 'branch', 'self_service'] : [type];
 
       const sources: TypedRecords[] = [];
       const unavailable: string[] = [];
@@ -122,8 +148,8 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
 
       try {
         const result = searchLocations(sources, {
-          type: args.type,
-          ...(args.place === undefined ? {} : { place: args.place }),
+          type,
+          ...(place === undefined ? {} : { place }),
           ...(args.bank === undefined ? {} : { bank: args.bank }),
           ...(args.currency === undefined ? {} : { currency: args.currency }),
           ...(args.near === undefined ? {} : { near: args.near }),
