@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+import { HkmaClient } from '@hk-bank-mcp/hkma-client';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SERVER_INSTRUCTIONS, SERVER_NAME, SERVER_VERSION } from './meta.js';
+import { registerFindBankLocation } from './tools/find-bank-location.js';
 import { registerServerInfo } from './tools/server-info.js';
 
 export function createServer(): McpServer {
@@ -10,7 +12,10 @@ export function createServer(): McpServer {
     { instructions: SERVER_INSTRUCTIONS },
   );
 
+  const client = new HkmaClient();
+
   registerServerInfo(server);
+  registerFindBankLocation(server, client);
 
   return server;
 }

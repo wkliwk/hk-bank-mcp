@@ -1,0 +1,179 @@
+import { describe, expect, it } from 'vitest';
+import type { BankLocation } from '../src/endpoints.js';
+import type { TypedRecords } from '../src/locations.js';
+import {
+  haversineKm,
+  LIMIT_MAX,
+  LocationQueryError,
+  project,
+  searchLocations,
+  TOO_MANY_THRESHOLD,
+} from '../src/locations.js';
+import { readFixture } from './helpers.js';
+
+const atmRecords = (name = 'atm-locator-en.json'): BankLocation[] =>
+  (JSON.parse(readFixture(name)) as { result: { records: BankLocation[] } }).result.records;
+
+const atmSource = (): TypedRecords[] => [{ type: 'atm', records: atmRecords() }];
+
+describe('searchLocations', () => {
+  it('finds locations across every spelling of a district, not just one', () => {
+    const records = atmRecords();
+    // What a naive `district === "Sha Tin District"` filter would return.
+    const naive = records.filter((r) => r.district === 'Sha Tin District').length;
+    const found = searchLocations([{ type: 'atm', records }], { place: '沙田' }).total_matches;
+
+    expect(naive).toBeGreaterThan(0);
+    expect(found).toBeGreaterThan(naive);
+  });
+
+  it('accepts a neighbourhood and reports which district it resolved to', () => {
+    const result = searchLocations(atmSource(), { place: '旺角', limit: 1 });
+    expect(result.resolved_place).toContain('Yau Tsim Mong');
+    expect(result.total_matches).toBeGreaterThan(0);
+  });
+
+  it('filters by bank using a short form', () => {
+    const result = searchLocations(atmSource(), { bank: '恒生', limit: 50 });
+    expect(result.total_matches).toBeGreaterThan(0);
+    for (const row of result.results) expect(row.bank).toBe('Hang Seng Bank Limited');
+  });
+
+  it('filters by currency', () => {
+    const result = searchLocations(atmSource(), { currency: 'RMB', limit: 50, format: 'detailed' });
+    for (const row of result.results) expect(row.currencies?.toUpperCase()).toContain('RMB');
+  });
+
+  it('sorts by distance and reports it when given a reference point', () => {
+    const central = { lat: 22.2819, lon: 114.158 };
+    const result = searchLocations(atmSource(), { near: central, limit: 5 });
+
+    const distances = result.results.map((r) => r.distance_km ?? Number.NaN);
+    expect(distances.every((d) => Number.isFinite(d))).toBe(true);
+    expect([...distances]).toEqual([...distances].sort((a, b) => a - b));
+  });
+
+  it('honours a radius', () => {
+    const central = { lat: 22.2819, lon: 114.158 };
+    const result = searchLocations(atmSource(), { near: central, radiusKm: 1, limit: LIMIT_MAX });
+    for (const row of result.results) expect(row.distance_km).toBeLessThanOrEqual(1);
+  });
+
+  it('caps limit at the hard maximum however large a value is asked for', () => {
+    // Exceeding a client's context is not a degraded response, it ends the
+    // conversation — so the ceiling is enforced, not advisory.
+    const result = searchLocations(atmSource(), { limit: 99_999, place: '中西區' });
+    expect(result.showing).toBeLessThanOrEqual(LIMIT_MAX);
+  });
+
+  it('refuses a query that is too broad instead of truncating it silently', () => {
+    const many = Array.from({ length: TOO_MANY_THRESHOLD + 50 }, () => atmRecords()[0]).filter(
+      (r): r is BankLocation => r !== undefined,
+    );
+    const result = searchLocations([{ type: 'atm', records: many }], {});
+
+    expect(result.showing).toBe(0);
+    expect(result.results).toEqual([]);
+    expect(result.total_matches).toBeGreaterThan(TOO_MANY_THRESHOLD);
+    // A caller that cannot see it is missing results answers confidently and wrongly.
+    expect(result.narrow_hint).toMatch(/place|bank|currency|near/);
+  });
+
+  it('always states the total, so the caller knows what it is not seeing', () => {
+    const result = searchLocations(atmSource(), { place: '中西區', limit: 2 });
+    expect(result.total_matches).toBeGreaterThan(result.showing);
+    expect(result.summary).toMatch(/showing the first 2/);
+  });
+
+  it('errors with the valid districts when the place is not in Hong Kong', () => {
+    const error = (() => {
+      try {
+        searchLocations(atmSource(), { place: 'Tokyo' });
+      } catch (e) {
+        return e as LocationQueryError;
+      }
+      return undefined;
+    })();
+
+    expect(error).toBeInstanceOf(LocationQueryError);
+    expect(error?.candidates).toHaveLength(18);
+    expect(error?.agentHint).toMatch(/confirm|retry/i);
+  });
+
+  it('refuses to guess between banks when the name is ambiguous', () => {
+    expect(() => searchLocations(atmSource(), { bank: '中國' })).toThrow(LocationQueryError);
+    try {
+      searchLocations(atmSource(), { bank: '中國' });
+    } catch (e) {
+      expect((e as LocationQueryError).agentHint).toMatch(/do not pick one/i);
+    }
+  });
+
+  it('returns an empty result rather than an error when filters simply match nothing', () => {
+    const result = searchLocations(atmSource(), { place: '離島區', bank: '集友', currency: 'JPY' });
+    expect(result.total_matches).toBe(0);
+    expect(result.summary).toMatch(/No locations/);
+  });
+});
+
+describe('project', () => {
+  const sample = (): BankLocation => {
+    const record = atmRecords()[0];
+    if (record === undefined) throw new Error('fixture empty');
+    return record;
+  };
+
+  it('drops coordinates and null-only columns from the concise shape', () => {
+    const out = project(sample(), 'atm', 'concise') as unknown as Record<string, unknown>;
+    // latitude/longitude drive distance internally; no user asks to be told them.
+    for (const dropped of [
+      'latitude',
+      'longitude',
+      'function_code',
+      'barrier-free_access_code',
+      'network',
+    ]) {
+      expect(out, dropped).not.toHaveProperty(dropped);
+    }
+    expect(out).toHaveProperty('bank');
+    expect(out).toHaveProperty('address');
+  });
+
+  it('is materially smaller than the raw record', () => {
+    const raw = JSON.stringify(sample()).length;
+    const concise = JSON.stringify(project(sample(), 'atm', 'concise')).length;
+    expect(concise).toBeLessThan(raw * 0.6);
+  });
+
+  it('adds the extra fields only when detailed is asked for', () => {
+    const concise = project(sample(), 'atm', 'concise');
+    const detailed = project(sample(), 'atm', 'detailed');
+    expect(concise.currencies).toBeUndefined();
+    expect(detailed.currencies).toBeTruthy();
+    expect(JSON.stringify(detailed).length).toBeGreaterThan(JSON.stringify(concise).length);
+  });
+
+  it('normalises the bank and district onto their canonical names', () => {
+    const odd: BankLocation = {
+      bank_name: 'Hang Seng Bank Limited',
+      district: 'ShaTin',
+      address: 'somewhere',
+    };
+    const out = project(odd, 'atm', 'concise');
+    expect(out.district).toBe('Sha Tin');
+    expect(out.bank).toBe('Hang Seng Bank Limited');
+  });
+});
+
+describe('haversineKm', () => {
+  it('measures a known Hong Kong distance', () => {
+    // Central to Tsim Sha Tsui across the harbour is roughly 2 km.
+    const km = haversineKm({ lat: 22.2819, lon: 114.158 }, { lat: 22.2971, lon: 114.1722 });
+    expect(km).toBeGreaterThan(1.5);
+    expect(km).toBeLessThan(3);
+  });
+
+  it('is zero for the same point', () => {
+    expect(haversineKm({ lat: 22.3, lon: 114.2 }, { lat: 22.3, lon: 114.2 })).toBe(0);
+  });
+});

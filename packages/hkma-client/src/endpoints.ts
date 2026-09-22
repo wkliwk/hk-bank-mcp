@@ -144,6 +144,16 @@ export const ENDPOINTS = {
     sourceId: 'hkma-bank-svf-info',
   } satisfies EndpointDefinition<BankLocation>,
 
+  selfServiceLocator: {
+    id: 'selfServiceLocator',
+    path: `${BANK_INFO}/banks-ssm-locator`,
+    schema: bankLocationSchema,
+    ttlMs: TTL.locators,
+    maxPageSize: 1000,
+    supportsLang: true,
+    sourceId: 'hkma-bank-svf-info',
+  } satisfies EndpointDefinition<BankLocation>,
+
   authorisedInstitutions: {
     id: 'authorisedInstitutions',
     path: `${BANK_INFO}/register-ais-lros`,

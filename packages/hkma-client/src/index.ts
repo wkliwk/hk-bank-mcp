@@ -1,7 +1,18 @@
+export type { Bank, BankMatch } from './banks.js';
+export { BANKS, bankByPublishedName, bankNames, matchBanks, resolveBank } from './banks.js';
 export type { CachedValue, CacheEntry, TtlCacheOptions } from './cache.js';
 export { TTL, TtlCache } from './cache.js';
 export type { FetchResult, HkmaClientOptions } from './client.js';
 export { HkmaClient } from './client.js';
+export type { District } from './districts.js';
+export {
+  DISTRICTS,
+  districtKey,
+  districtNames,
+  NEIGHBOURHOODS,
+  resolveDistrict,
+  resolvePlace,
+} from './districts.js';
 export type {
   AuthorisedInstitution,
   BankLocation,
@@ -27,5 +38,23 @@ export type { HkmaErrorKind, HkmaErrorOptions } from './errors.js';
 export { HkmaError, UPSTREAM_DOWN_HINT } from './errors.js';
 export type { Envelope, FetchOptions, RawPage } from './http.js';
 export { envelopeSchema, fetchPage } from './http.js';
+export type {
+  Coordinates,
+  LocationQuery,
+  LocationResult,
+  LocationType,
+  ResolvedLocation,
+  ResponseFormat,
+  TypedRecords,
+} from './locations.js';
+export {
+  haversineKm,
+  LIMIT_DEFAULT,
+  LIMIT_MAX,
+  LocationQueryError,
+  project,
+  searchLocations,
+  TOO_MANY_THRESHOLD,
+} from './locations.js';
 export type { DataSource } from './sources.js';
 export { DATA_SOURCES, findDataSource, HKMA_BASE_URL } from './sources.js';
