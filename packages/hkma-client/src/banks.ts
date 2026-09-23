@@ -211,9 +211,23 @@ export function resolveBank(input: string): Bank | undefined {
 }
 
 /** Look up the canonical record for a name exactly as the API publishes it. */
+/**
+ * Published name → bank, built once.
+ *
+ * Previously this scanned BANKS and recomputed strictKey for all 20 banks in
+ * both languages on every call — 40 normalisations per lookup, and the lookup
+ * runs once per record while filtering. On the full 3,000-record ATM dataset
+ * that measured 45ms per search against 2.8ms without a bank filter; the
+ * index brings it back in line (#32).
+ */
+const BY_PUBLISHED_NAME = new Map<string, Bank>();
+for (const bank of BANKS) {
+  BY_PUBLISHED_NAME.set(strictKey(bank.en), bank);
+  BY_PUBLISHED_NAME.set(strictKey(bank.tc), bank);
+}
+
 export function bankByPublishedName(name: string): Bank | undefined {
-  const strict = strictKey(name);
-  return BANKS.find((b) => strictKey(b.en) === strict || strictKey(b.tc) === strict);
+  return BY_PUBLISHED_NAME.get(strictKey(name));
 }
 
 export function bankNames(lang: 'en' | 'tc' = 'en'): string[] {

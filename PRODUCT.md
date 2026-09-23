@@ -54,7 +54,19 @@ Shipped incrementally — each version is independently installable and useful.
 - Long ranges summarised, not dumped
 - Every response carries `as_of` so a stale figure is never presented as today's
 
-### 3. Bank legitimacy and scam checker — `hk_check_bank_legitimacy` (v0.2)
+### 3. Server self-description — `hk_server_info` (v0.1)
+
+**Description:** Reports the server version and which official data sources it reads, including how fresh each one is and what it cannot do.
+
+**User flow:** The model calls it when it needs to explain where a figure came from, or to check what this server can answer before attempting a question.
+
+**Acceptance criteria:**
+- Reports server name and version
+- Lists every configured data source with its publisher and measured freshness — not the freshness the publisher's own documentation claims
+- States the no-credentials limitation explicitly, so the model can repeat it accurately if asked
+- Carries `as_of`, consistent with every other tool
+
+### 4. Bank legitimacy and scam checker — `hk_check_bank_legitimacy` (v0.2)
 
 **Description:** Given a bank name, website or phone number, return whether it is an HKMA-authorised institution, a known published scam, or unknown.
 
@@ -65,7 +77,7 @@ Shipped incrementally — each version is independently installable and useful.
 - `not_found` is never worded as "safe"
 - Domain normalisation handles protocol, `www.`, paths and subdomains
 
-### 4. Bank contacts — `hk_get_bank_contact` (v0.2)
+### 5. Bank contacts — `hk_get_bank_contact` (v0.2)
 
 **Description:** The right hotline for a purpose — lost card, account opening, verifying a caller who claims to be from your bank, SME lending, credit review.
 
@@ -73,7 +85,7 @@ Shipped incrementally — each version is independently installable and useful.
 - Purpose-driven parameter, not a raw hotline dump
 - Ambiguous bank names return candidates rather than guessing
 
-### 5. Cross-bank deposit comparison — `hk_compare_deposit_rates` (v0.3)
+### 6. Cross-bank deposit comparison — `hk_compare_deposit_rates` (v0.3)
 
 **Description:** Rank time-deposit and savings rates across Hong Kong banks in a single call.
 
@@ -85,7 +97,7 @@ Shipped incrementally — each version is independently installable and useful.
 - `unavailable_banks` listed rather than failing the whole call
 - Top result verifiable against that bank's public website on the same day
 
-### 6. Cross-bank credit card comparison — `hk_compare_credit_cards` (v0.3)
+### 7. Cross-bank credit card comparison — `hk_compare_credit_cards` (v0.3)
 
 **Description:** Rank cards by what the user is optimising for — cashback, miles, annual fee, welcome offer — optionally for a spending category.
 
@@ -94,7 +106,7 @@ Shipped incrementally — each version is independently installable and useful.
 - Annual fee shown with its waiver condition
 - Welcome offers include spending requirement and time window
 
-### 7. Cross-bank mortgage comparison — `hk_compare_mortgage_plans` (v0.3)
+### 8. Cross-bank mortgage comparison — `hk_compare_mortgage_plans` (v0.3)
 
 **Description:** Compare HIBOR-based and Prime-based mortgage plans with effective rates computed from live HIBOR, plus caps, rebates and estimated monthly payments.
 
@@ -103,7 +115,7 @@ Shipped incrementally — each version is independently installable and useful.
 - Monthly payment calculated and independently verifiable
 - Indicative-rate disclaimer present in the response
 
-### 8. Statement parsing — `hk_parse_statement` (v0.4)
+### 9. Statement parsing — `hk_parse_statement` (v0.4)
 
 **Description:** Parse a statement the user exported themselves (HSBC / Hang Seng CSV, or PDF) into structured transactions. Entirely local.
 
@@ -113,7 +125,7 @@ Shipped incrementally — each version is independently installable and useful.
 - No outbound network calls in this code path
 - Scanned-image PDFs produce a clear, actionable error
 
-### 9. Spending analysis — `hk_analyze_spending` (v0.4)
+### 10. Spending analysis — `hk_analyze_spending` (v0.4)
 
 **Description:** Category breakdown, top merchants, recurring-charge detection and period-over-period change from parsed statements.
 
