@@ -191,6 +191,18 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
   const format = query.format ?? 'concise';
   const limit = Math.min(Math.max(1, query.limit ?? LIMIT_DEFAULT), LIMIT_MAX);
 
+  // A filter that quietly does nothing is worse than one that fails: the user
+  // asked to limit by distance and would be handed everything instead, with no
+  // signal that the limit was dropped. Same reasoning as #22 — an error is
+  // something the model corrects, a vanished filter is something it cannot see.
+  if (query.radiusKm !== undefined && query.near === undefined) {
+    throw new LocationQueryError(
+      'radius_km was given without near.',
+      "A radius needs a point to measure from. Supply near with the user's coordinates, " +
+        'or drop radius_km and filter by district instead.',
+    );
+  }
+
   if (query.districts !== undefined && query.districts.length === 0) {
     throw new LocationQueryError(
       'districts must contain at least one district id.',
@@ -198,9 +210,29 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
     );
   }
 
+  // `districts` is the canonical, machine-checked input and takes precedence.
+  // When it is present, `place` is ignored entirely rather than partially —
+  // previously the filter used `districts` while `resolved_place` still
+  // described whatever `place` resolved to, so the model was told one thing
+  // and handed results for another (#27).
+  const districtsGiven = query.districts !== undefined;
+
   let districts: District[] = [];
   let resolvedPlace: string | undefined;
-  if (query.place !== undefined && query.place.trim() !== '') {
+
+  if (districtsGiven) {
+    districts = (query.districts ?? []).map((id) => {
+      const district = districtById(id);
+      if (district === undefined) {
+        throw new LocationQueryError(
+          `Unknown district id: ${id}.`,
+          'Use one of the canonical district ids provided by the tool schema.',
+          DISTRICT_IDS_FOR_ERROR,
+        );
+      }
+      return district;
+    });
+  } else if (query.place !== undefined && query.place.trim() !== '') {
     const place = resolvePlace(query.place);
     if (place === undefined) {
       throw new LocationQueryError(
@@ -216,21 +248,14 @@ export function searchLocations(sources: TypedRecords[], query: LocationQuery): 
     }
   }
 
-  if (query.districts !== undefined) {
-    districts = query.districts.map((id) => {
-      const district = districtById(id);
-      if (district === undefined) {
-        throw new LocationQueryError(
-          `Unknown district id: ${id}.`,
-          'Use one of the canonical district ids provided by the tool schema.',
-          DISTRICT_IDS_FOR_ERROR,
-        );
-      }
-      return district;
-    });
-  }
   const districtIds = new Set(districts.map((d) => d.id));
-  const placeLabel = query.placeLabel?.trim() || query.place?.trim() || undefined;
+
+  // The label only falls back to `place` when `place` was actually used to pick
+  // the districts. Falling back to an overridden `place` would rank results by
+  // a neighbourhood that is not in any district being searched — every row
+  // would come back `elsewhere`, which is true but meaningless.
+  const placeLabel =
+    query.placeLabel?.trim() || (districtsGiven ? undefined : query.place?.trim()) || undefined;
   const labelKeys = placeLabel === undefined ? [] : placeKeys(placeLabel);
 
   let bank: Bank | undefined;

@@ -52,6 +52,29 @@ describe('mergeHiborSeries', () => {
     expect(series.every((p) => p.value !== 0 || monthly().some((r) => r.ir_9m === 0))).toBe(true);
   });
 
+  it('daily supersedes monthly when both publish the same date', () => {
+    // Pinned deliberately: for a shared date the daily series is the later
+    // publication, so it wins. The comment in mergeHiborSeries used to claim a
+    // guard against this that did not exist (#30).
+    const merged = mergeHiborSeries(
+      [{ end_of_day: '2026-09-21', ir_overnight: 9.99 }],
+      [{ end_of_date: '2026-09-21', hibor_overnight: 1.96 }],
+      'overnight',
+    );
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.value).toBe(1.96);
+    expect(merged[0]?.sourceId).toBe('hkma-daily-monetary');
+  });
+
+  it('keeps a monthly date that the daily series does not have at all', () => {
+    const merged = mergeHiborSeries(
+      [{ end_of_day: '2026-09-25', ir_overnight: 5.55 }],
+      [{ end_of_date: '2026-09-21', hibor_overnight: 1.96 }],
+      'overnight',
+    );
+    expect(merged.map((p) => p.date)).toEqual(['2026-09-21', '2026-09-25']);
+  });
+
   it('sorts ascending by date', () => {
     const series = mergeHiborSeries(monthly(), daily(), 'overnight');
     const dates = series.map((p) => p.date);

@@ -184,6 +184,58 @@ describe('district ids and neighbourhood ranking', () => {
     expect(result.summary).toMatch(/5 districts/);
   });
 
+  it('rejects radius_km without near instead of ignoring it', () => {
+    // Previously identical results with and without the radius — the filter
+    // vanished silently (#28).
+    expect(() => searchLocations(atmSource(), { districts: ['islands'], radiusKm: 1 })).toThrow(
+      LocationQueryError,
+    );
+    try {
+      searchLocations(atmSource(), { districts: ['islands'], radiusKm: 1 });
+      expect.unreachable('should have thrown');
+    } catch (error) {
+      expect((error as LocationQueryError).agentHint).toMatch(/near/i);
+    }
+  });
+
+  it('still filters by distance when near and radius_km are both given', () => {
+    const result = searchLocations(atmSource(), {
+      near: { lat: 22.2819, lon: 114.158 },
+      radiusKm: 1,
+      limit: LIMIT_MAX,
+    });
+    for (const row of result.results) expect(row.distance_km).toBeLessThanOrEqual(1);
+  });
+
+  it('never contradicts itself when districts and place are both given', () => {
+    // The bug: districts won the filter while resolved_place still described
+    // what place resolved to, so the model was told 旺角 is in Yau Tsim Mong
+    // while holding Sha Tin results (#27).
+    const result = searchLocations(atmSource(), {
+      districts: ['sha-tin'],
+      place: '旺角',
+      limit: 2,
+    });
+
+    expect(result.searched_districts).toEqual(['sha-tin']);
+    // Nothing in the response may mention the district that was not searched.
+    expect(JSON.stringify(result)).not.toMatch(/Yau Tsim Mong|油尖旺/);
+    for (const row of result.results) expect(row.district).toBe('Sha Tin');
+  });
+
+  it('does not rank by an overridden place label', () => {
+    // Falling back to the ignored `place` would mark every row 'elsewhere' —
+    // technically true, entirely meaningless.
+    const result = searchLocations(atmSource(), { districts: ['sha-tin'], place: '旺角' });
+    for (const row of result.results) expect(row.place_match).toBeUndefined();
+  });
+
+  it('still uses place on its own when districts is absent', () => {
+    const result = searchLocations(atmSource(), { place: '旺角', limit: 2 });
+    expect(result.resolved_place).toContain('Yau Tsim Mong');
+    expect(result.results.some((r) => r.place_match === 'label')).toBe(true);
+  });
+
   it('rejects an empty district list rather than reading it as everywhere', () => {
     // A caller that means everywhere omits the parameter.
     expect(() => searchLocations(atmSource(), { districts: [] })).toThrow(LocationQueryError);

@@ -140,10 +140,11 @@ export function mergeHiborSeries(
     for (const row of daily) {
       const value = tenor === 'overnight' ? row.hibor_overnight : row.hibor_fixing_1m;
       if (typeof value === 'number') {
-        // The daily source is never older than the monthly one for shared
-        // dates, but an explicit overwrite here would be wrong if it ever is —
-        // so only add dates the monthly source did not already cover, unless
-        // this date is newer than anything monthly has.
+        // Overwrites the monthly value when both publish the same date, which
+        // is what we want: for a shared date the daily series is the later
+        // publication and supersedes the bulletin. Dates only one source has
+        // are kept either way, so a monthly date newer than anything daily
+        // still survives — it simply never collides.
         byDate.set(row.end_of_date, {
           date: row.end_of_date,
           value,
