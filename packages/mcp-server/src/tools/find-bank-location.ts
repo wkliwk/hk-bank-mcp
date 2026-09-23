@@ -130,6 +130,17 @@ const inputShape = {
  */
 export const inputSchema = z.object(inputShape).strict();
 
+/** Parsed arguments, as the SDK hands them to the handler. */
+export type FindBankLocationArgs = z.infer<z.ZodObject<typeof inputShape>>;
+
+/** The shape both the success and error paths return. */
+export interface ToolResult {
+  [key: string]: unknown;
+  isError?: boolean;
+  content: { type: 'text'; text: string }[];
+  structuredContent: Record<string, unknown>;
+}
+
 export function registerFindBankLocation(server: McpServer, client: HkmaClient): void {
   server.registerTool(
     'hk_find_bank_location',
@@ -151,84 +162,97 @@ export function registerFindBankLocation(server: McpServer, client: HkmaClient):
       inputSchema,
       annotations: { readOnlyHint: true, openWorldHint: true },
     },
-    async (args) => {
-      const place = args.place ?? args.district;
-      const type = args.service_type ?? args.type;
-      const wanted: LocationType[] = type === 'any' ? ['atm', 'branch', 'self_service'] : [type];
-
-      const sources: TypedRecords[] = [];
-      const unavailable: string[] = [];
-      let stale = false;
-      let maxAgeSeconds = 0;
-      // The oldest source decides: a response is only as current as its stalest part.
-      let oldestAsOf: string | undefined;
-
-      for (const type of wanted) {
-        try {
-          const page = await client.fetchAll(ENDPOINT_BY_TYPE[type], { lang: args.lang });
-          sources.push({ type, records: page.records as BankLocation[] });
-          if (oldestAsOf === undefined || page.asOf < oldestAsOf) oldestAsOf = page.asOf;
-          if (page.stale) {
-            stale = true;
-            maxAgeSeconds = Math.max(maxAgeSeconds, page.ageSeconds);
-          }
-        } catch (error) {
-          // One dataset being down must not fail the whole search — the other
-          // two still answer most questions.
-          unavailable.push(type);
-          if (!(error instanceof HkmaError)) throw error;
-        }
-      }
-
-      if (sources.length === 0) {
-        return errorResult(
-          'The HKMA location data could not be retrieved.',
-          'The official source is not responding. Tell the user it is temporarily ' +
-            'unavailable and offer to retry. Do not recall an address from memory.',
-        );
-      }
-
-      try {
-        const result = searchLocations(sources, {
-          type,
-          ...(place === undefined ? {} : { place }),
-          ...(args.districts === undefined ? {} : { districts: args.districts }),
-          ...(args.place_label === undefined ? {} : { placeLabel: args.place_label }),
-          ...(args.bank === undefined ? {} : { bank: args.bank }),
-          ...(args.currency === undefined ? {} : { currency: args.currency }),
-          ...(args.near === undefined ? {} : { near: args.near }),
-          ...(args.radius_km === undefined ? {} : { radiusKm: args.radius_km }),
-          limit: args.limit,
-          format: args.response_format,
-          lang: args.lang,
-        });
-
-        const payload = {
-          ...result,
-          ...(oldestAsOf === undefined ? {} : { as_of: oldestAsOf }),
-          ...(stale
-            ? {
-                stale: true,
-                as_of_hours_ago: Math.round(maxAgeSeconds / 3600),
-                staleness_note:
-                  'Served from cache because the HKMA API is unavailable. Tell the user how old this is.',
-              }
-            : {}),
-          ...(unavailable.length > 0 ? { unavailable_types: unavailable } : {}),
-        };
-
-        return {
-          content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
-          structuredContent: payload as unknown as Record<string, unknown>,
-        };
-      } catch (error) {
-        if (error instanceof LocationQueryError) {
-          return errorResult(error.message, error.agentHint, error.candidates);
-        }
-        throw error;
-      }
-    },
+    async (args) => handleFindBankLocation(client, args),
   );
+}
+
+/**
+ * The tool's actual behaviour, extracted from registerTool so it can be driven
+ * directly in tests with an injected fetch. Multi-source fetching, partial
+ * failure, staleness and error mapping all live here and are worth testing
+ * without standing up a server (#29).
+ */
+export async function handleFindBankLocation(
+  client: HkmaClient,
+  args: FindBankLocationArgs,
+): Promise<ToolResult> {
+  {
+    const place = args.place ?? args.district;
+    const type = args.service_type ?? args.type;
+    const wanted: LocationType[] = type === 'any' ? ['atm', 'branch', 'self_service'] : [type];
+
+    const sources: TypedRecords[] = [];
+    const unavailable: string[] = [];
+    let stale = false;
+    let maxAgeSeconds = 0;
+    // The oldest source decides: a response is only as current as its stalest part.
+    let oldestAsOf: string | undefined;
+
+    for (const type of wanted) {
+      try {
+        const page = await client.fetchAll(ENDPOINT_BY_TYPE[type], { lang: args.lang });
+        sources.push({ type, records: page.records as BankLocation[] });
+        if (oldestAsOf === undefined || page.asOf < oldestAsOf) oldestAsOf = page.asOf;
+        if (page.stale) {
+          stale = true;
+          maxAgeSeconds = Math.max(maxAgeSeconds, page.ageSeconds);
+        }
+      } catch (error) {
+        // One dataset being down must not fail the whole search — the other
+        // two still answer most questions.
+        unavailable.push(type);
+        if (!(error instanceof HkmaError)) throw error;
+      }
+    }
+
+    if (sources.length === 0) {
+      return errorResult(
+        'The HKMA location data could not be retrieved.',
+        'The official source is not responding. Tell the user it is temporarily ' +
+          'unavailable and offer to retry. Do not recall an address from memory.',
+      );
+    }
+
+    try {
+      const result = searchLocations(sources, {
+        type,
+        ...(place === undefined ? {} : { place }),
+        ...(args.districts === undefined ? {} : { districts: args.districts }),
+        ...(args.place_label === undefined ? {} : { placeLabel: args.place_label }),
+        ...(args.bank === undefined ? {} : { bank: args.bank }),
+        ...(args.currency === undefined ? {} : { currency: args.currency }),
+        ...(args.near === undefined ? {} : { near: args.near }),
+        ...(args.radius_km === undefined ? {} : { radiusKm: args.radius_km }),
+        limit: args.limit,
+        format: args.response_format,
+        lang: args.lang,
+      });
+
+      const payload = {
+        ...result,
+        ...(oldestAsOf === undefined ? {} : { as_of: oldestAsOf }),
+        ...(stale
+          ? {
+              stale: true,
+              as_of_hours_ago: Math.round(maxAgeSeconds / 3600),
+              staleness_note:
+                'Served from cache because the HKMA API is unavailable. Tell the user how old this is.',
+            }
+          : {}),
+        ...(unavailable.length > 0 ? { unavailable_types: unavailable } : {}),
+      };
+
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }],
+        structuredContent: payload as unknown as Record<string, unknown>,
+      };
+    } catch (error) {
+      if (error instanceof LocationQueryError) {
+        return errorResult(error.message, error.agentHint, error.candidates);
+      }
+      throw error;
+    }
+  }
 }
 
 function errorResult(message: string, agentHint: string, candidates?: string[]) {
