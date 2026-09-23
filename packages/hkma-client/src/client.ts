@@ -140,18 +140,29 @@ export class HkmaClient {
 
     try {
       const all: unknown[] = [];
+      // An aggregate is only as fresh as its stalest page. Reporting the time
+      // of the call here would present day-old cached pages as current and
+      // defeat the whole point of as_of (#34).
+      let anyStale = false;
+      let oldestFetchedAt = this.#clock();
       for (let offset = 0; all.length < maxRecords; offset += pageSize) {
         const page = await this.fetch(endpointId, { ...params, pagesize: pageSize, offset });
         all.push(...page.records);
+        if (page.stale) anyStale = true;
+        oldestFetchedAt = Math.min(oldestFetchedAt, Date.parse(page.asOf));
         // A page smaller than requested means there is nothing left to read.
         if (page.records.length < pageSize) break;
       }
-      this.#cache.set(cacheKey, all, definition.ttlMs);
+      // Only cache a genuinely fresh aggregate. Writing a stale one back with a
+      // new TTL launders day-old data into a "fresh" entry, and every caller
+      // for the next TTL is told it is current while ageSeconds says otherwise
+      // (#34).
+      if (!anyStale) this.#cache.setFetchedAt(cacheKey, all, definition.ttlMs, oldestFetchedAt);
       return {
         records: all,
-        stale: false,
-        ageSeconds: 0,
-        asOf: new Date(this.#clock()).toISOString(),
+        stale: anyStale,
+        ageSeconds: Math.floor((this.#clock() - oldestFetchedAt) / 1000),
+        asOf: new Date(oldestFetchedAt).toISOString(),
         sourceId: definition.sourceId,
       };
     } catch (error) {
@@ -205,6 +216,9 @@ export class HkmaClient {
 
     try {
       const all: unknown[] = [];
+      // Same reasoning as fetchAll: the aggregate inherits its stalest page.
+      let anyStale = false;
+      let oldestFetchedAt = this.#clock();
       for (let offset = 0; all.length < maxRecords; offset += pageSize) {
         const page = await this.fetch(endpointId, {
           ...rest,
@@ -214,6 +228,8 @@ export class HkmaClient {
           sortorder: 'desc',
         });
         all.push(...page.records);
+        if (page.stale) anyStale = true;
+        oldestFetchedAt = Math.min(oldestFetchedAt, Date.parse(page.asOf));
         if (page.records.length < pageSize) break;
         if (oldestNeeded !== undefined) {
           const last = page.records[page.records.length - 1] as Record<string, unknown> | undefined;
@@ -222,12 +238,15 @@ export class HkmaClient {
         }
       }
       const bounded = all.slice(0, maxRecords);
-      this.#cache.set(cacheKey, bounded, definition.ttlMs);
+      // Same reasoning as fetchAll: never re-cache stale data as fresh.
+      if (!anyStale) {
+        this.#cache.setFetchedAt(cacheKey, bounded, definition.ttlMs, oldestFetchedAt);
+      }
       return {
         records: bounded,
-        stale: false,
-        ageSeconds: 0,
-        asOf: new Date(this.#clock()).toISOString(),
+        stale: anyStale,
+        ageSeconds: Math.floor((this.#clock() - oldestFetchedAt) / 1000),
+        asOf: new Date(oldestFetchedAt).toISOString(),
         sourceId: definition.sourceId,
       };
     } catch (error) {

@@ -116,6 +116,68 @@ describe('hk_find_bank_location handler', () => {
     expect(body.as_of).toMatch(/^2026-09-22T09:0/);
   });
 
+  it('surfaces staleness when serving from an expired cache', async () => {
+    // Only runs when HKMA is down, which #1 measured as common. Was untested
+    // until #33, and writing the test is what exposed #34 — fetchAll had been
+    // discarding the staleness of the pages it aggregated.
+    let clock = Date.parse('2026-09-22T09:00:00Z');
+    let failing = false;
+    const fetchImpl = (async (input: RequestInfo | URL) => {
+      if (failing) throw new DOMException('timed out', 'TimeoutError');
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url.includes('banks-atm-locator')) return json(fixture('atm-locator-en.json'));
+      if (url.includes('banks-branch-locator')) return json(fixture('branch-locator-en.json'));
+      return json(fixture('ssm-locator-en.json'));
+    }) as unknown as typeof fetch;
+    const client = new HkmaClient({
+      fetchImpl,
+      sleep: noSleep,
+      maxRetries: 0,
+      now: () => clock,
+    });
+
+    // Warm the cache, then move past the 24h locator TTL with upstream down.
+    await client.fetchAll('atmLocator', { lang: 'en' });
+    clock += 30 * 60 * 60 * 1000;
+    failing = true;
+
+    const result = await handleFindBankLocation(client, {
+      ...baseArgs,
+      type: 'atm',
+      districts: ['yau-tsim-mong'],
+    });
+    const body = result.structuredContent as Record<string, unknown>;
+
+    expect(result.isError).toBeFalsy();
+    expect(body.stale).toBe(true);
+    expect(body.as_of_hours_ago).toBe(30);
+    // as_of is when the data was fetched, not when this call was made (#24).
+    expect(body.as_of).toBe('2026-09-22T09:00:00.000Z');
+    expect(String(body.staleness_note)).toMatch(/cache|old/i);
+    // Still answers — stale data beats no data, as long as it says so.
+    expect((body.results as unknown[]).length).toBeGreaterThan(0);
+  });
+
+  it('omits the staleness fields entirely when the data is fresh', async () => {
+    // Their presence has to mean something, so they must be absent otherwise.
+    const { fetchImpl } = routedFetch({
+      'banks-atm-locator': () => json(fixture('atm-locator-en.json')),
+    });
+    const client = new HkmaClient({ fetchImpl, sleep: noSleep });
+
+    const result = await handleFindBankLocation(client, {
+      ...baseArgs,
+      type: 'atm',
+      districts: ['yau-tsim-mong'],
+    });
+    const body = result.structuredContent as Record<string, unknown>;
+
+    expect(body.stale).toBeUndefined();
+    expect(body.as_of_hours_ago).toBeUndefined();
+    expect(body.staleness_note).toBeUndefined();
+    expect(body.as_of).toBeDefined();
+  });
+
   it('turns an ambiguous bank into an error carrying the candidates', async () => {
     const { fetchImpl } = routedFetch({
       'banks-atm-locator': () => json(fixture('atm-locator-en.json')),

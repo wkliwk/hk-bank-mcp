@@ -58,6 +58,23 @@ export class TtlCache {
     }
   }
 
+  /**
+   * Store with an explicit fetch time, for values assembled from several
+   * fetches. The aggregate must carry the age of its oldest contributing
+   * part, not the moment it was assembled (#34).
+   */
+  setFetchedAt<T>(key: string, value: T, ttlMs: number, fetchedAt: number): void {
+    const now = this.#now();
+    this.#entries.delete(key);
+    this.#entries.set(key, { value, storedAt: fetchedAt, expiresAt: now + ttlMs });
+
+    while (this.#entries.size > this.#maxEntries) {
+      const oldest = this.#entries.keys().next();
+      if (oldest.done) break;
+      this.#entries.delete(oldest.value);
+    }
+  }
+
   /** Fresh entries only. Returns undefined once the TTL has passed. */
   get<T>(key: string): CachedValue<T> | undefined {
     const entry = this.#entries.get(key);

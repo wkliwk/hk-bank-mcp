@@ -231,6 +231,71 @@ describe('HkmaClient', () => {
     expect(calls.length).toBeLessThanOrEqual(5);
   });
 
+  it('fetchAll inherits staleness from the pages it aggregates', async () => {
+    // fetch() reported staleness correctly all along; fetchAll discarded it and
+    // reported the aggregate as fresh, which defeated as_of on every tool that
+    // uses it (#34).
+    let clock = Date.parse('2026-09-22T09:00:00Z');
+    const cache = new TtlCache({ now: () => clock });
+    let failing = false;
+    const fetchImpl = (async () => {
+      if (failing) throw new DOMException('timed out', 'TimeoutError');
+      return jsonResponse(readFixture('atm-locator-en.json'));
+    }) as unknown as typeof fetch;
+    const client = new HkmaClient({
+      fetchImpl,
+      sleep: noSleep,
+      cache,
+      maxRetries: 0,
+      now: () => clock,
+    });
+
+    await client.fetchAll('atmLocator', { lang: 'en' });
+    clock += 30 * 60 * 60 * 1000; // past the 24h locator TTL
+    failing = true;
+
+    const stale = await client.fetchAll('atmLocator', { lang: 'en' });
+    expect(stale.stale).toBe(true);
+    expect(stale.asOf).toBe('2026-09-22T09:00:00.000Z');
+    expect(stale.ageSeconds).toBe(30 * 60 * 60);
+  });
+
+  it('never re-caches a stale aggregate as fresh', async () => {
+    // Writing a stale aggregate back with a new TTL laundered old data into a
+    // "fresh" entry: the second call reported stale:false while ageSeconds
+    // still said 30 hours — a response contradicting itself.
+    let clock = Date.parse('2026-09-22T09:00:00Z');
+    const cache = new TtlCache({ now: () => clock });
+    let failing = false;
+    const fetchImpl = (async () => {
+      if (failing) throw new DOMException('timed out', 'TimeoutError');
+      return jsonResponse(readFixture('atm-locator-en.json'));
+    }) as unknown as typeof fetch;
+    const client = new HkmaClient({
+      fetchImpl,
+      sleep: noSleep,
+      cache,
+      maxRetries: 0,
+      now: () => clock,
+    });
+
+    await client.fetchAll('atmLocator', { lang: 'en' });
+    clock += 30 * 60 * 60 * 1000;
+    failing = true;
+
+    for (const attempt of [1, 2, 3]) {
+      const result = await client.fetchAll('atmLocator', { lang: 'en' });
+      expect(result.stale, `attempt ${attempt}`).toBe(true);
+      expect(result.asOf, `attempt ${attempt}`).toBe('2026-09-22T09:00:00.000Z');
+    }
+
+    // And recovers once upstream is back.
+    failing = false;
+    const recovered = await client.fetchAll('atmLocator', { lang: 'en' });
+    expect(recovered.stale).toBe(false);
+    expect(recovered.ageSeconds).toBe(0);
+  });
+
   it('clamps an oversized pagesize instead of triggering err_code 9999', async () => {
     const { fetchImpl, calls } = scriptedFetch([
       () => jsonResponse(readFixture('register-ais.json')),
