@@ -172,6 +172,9 @@ importers:
       '@types/node':
         specifier: ^22.10.0
         version: 22.20.4
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
@@ -196,6 +199,10 @@ importers:
       zod:
         specifier: ^3.24.0
         version: 3.25.76
+    devDependencies:
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
 
 packages:
 

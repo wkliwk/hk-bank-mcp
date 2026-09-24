@@ -1,0 +1,56 @@
+name: Publish to npm
+
+# Runs on a version tag push (v0.1.1, v0.2.0, ...) — the tag is the trigger,
+# npm publish is a side effect of shipping a release, not a separate manual step.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# Required for npm provenance: ties the published package cryptographically to
+# this exact workflow run and commit, so installers can verify it was not
+# uploaded from someone's laptop under a stolen token.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: pnpm install --frozen-lockfile
+
+      # The full suite must pass before anything ships — a broken publish is
+      # much harder to undo than a broken merge to main.
+      - name: Verify
+        run: pnpm verify
+
+      - name: Bundle for publish
+        run: pnpm --filter @wkliwk/hk-bank-mcp build:publish
+
+      # npm publish reads package.json from the current directory regardless
+      # of the "files" allowlist — the workspace:* dependency has to go before
+      # publishing, since the bundle above already inlines hkma-client, zod
+      # and the SDK and npm does not understand pnpm's workspace: protocol.
+      # This mutates the checkout only; nothing is committed back.
+      - name: Strip workspace dependencies (already bundled)
+        working-directory: packages/mcp-server
+        run: npm pkg delete dependencies devDependencies
+
+      - name: Publish
+        working-directory: packages/mcp-server
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

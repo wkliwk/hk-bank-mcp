@@ -2,7 +2,7 @@
   "name": "hk-bank-mcp-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "MCP server for Hong Kong banking data \u2014 HKMA public APIs + cross-bank product comparison",
+  "description": "MCP server for Hong Kong banking data — HKMA public APIs + cross-bank product comparison",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -22,6 +22,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
     "@types/node": "^22.10.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.0",
     "vitest": "^3.2.0"
   }

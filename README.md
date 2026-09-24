@@ -22,13 +22,14 @@ Requires Node.js ≥ 22. No API key, no account, no configuration.
 **Claude Code:**
 
 ```bash
-git clone https://github.com/wkliwk/hk-bank-mcp.git
-cd hk-bank-mcp
-pnpm install && pnpm build
-claude mcp add hk-bank -- node "$(pwd)/packages/mcp-server/dist/index.js"
+claude mcp add hk-bank -- npx -y @wkliwk/hk-bank-mcp
 ```
 
-Then just ask, in Cantonese or English: *"邊度有ATM喺中環?"* or *"3個月HIBOR而家幾多?"*
+That's it — no clone, no build, nothing else to install. `npx` fetches the package on first run and caches it.
+
+Then just ask, in Cantonese or English: *"邊度有ATM喺中環?"* or *"3個月HIBOR而家幾多?"* (In a script or CI, non-interactive `claude -p` needs the tools named explicitly: add `--allowedTools mcp__hk-bank__hk_find_bank_location,mcp__hk-bank__hk_get_interest_rates,mcp__hk-bank__hk_server_info`.)
+
+By default this registers the server for the current project directory only. To make it available everywhere, add `--scope user` to the command above.
 
 **Claude Desktop:** add to your MCP config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
@@ -36,14 +37,30 @@ Then just ask, in Cantonese or English: *"邊度有ATM喺中環?"* or *"3個月H
 {
   "mcpServers": {
     "hk-bank": {
-      "command": "node",
-      "args": ["/absolute/path/to/hk-bank-mcp/packages/mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "@wkliwk/hk-bank-mcp"]
     }
   }
 }
 ```
 
 Restart Claude Desktop after editing.
+
+<details>
+<summary>Build from source instead</summary>
+
+For contributing, or to run a version newer than the last npm release:
+
+```bash
+git clone https://github.com/wkliwk/hk-bank-mcp.git
+cd hk-bank-mcp
+pnpm install && pnpm build
+claude mcp add hk-bank -- node "$(pwd)/packages/mcp-server/dist/index.js"
+```
+
+This requires pnpm (`npm i -g pnpm`) in addition to Node ≥ 22.
+
+</details>
 
 ## Tools
 
@@ -111,6 +128,10 @@ Fixtures under `fixtures/hkma/` are real HKMA API responses captured during deve
 To add a new HKMA endpoint, see `packages/hkma-client/src/endpoints.ts` — each entry declares its own `maxPageSize`, since the ceiling is undocumented and differs per endpoint (exceeding it returns `err_code: 9999` rather than a clear error).
 
 Contributions welcome via the usual fork → branch → PR flow. Please run `pnpm verify` before opening a PR.
+
+### Releasing to npm
+
+Pushing a `v*.*.*` tag triggers [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml), which runs the full verify suite, bundles the server with esbuild into a single dependency-free file (`packages/mcp-server/scripts/bundle.mjs`), and publishes with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) so the package on the registry is cryptographically tied to this repo and commit. `@hk-bank-mcp/hkma-client`'s `workspace:*` reference is stripped before publish, since npm does not understand pnpm's workspace protocol and everything it exports is already inlined into the bundle. Nothing is published by hand.
 
 ## Roadmap
 
