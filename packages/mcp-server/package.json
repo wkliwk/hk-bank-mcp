@@ -1,24 +1,27 @@
 {
-  "name": "@wkliwk/hk-bank-mcp",
+  "name": "hkma-mcp",
   "version": "0.1.0",
-  "description": "MCP server for Hong Kong banking data — HKMA public APIs, no credentials, no scraping",
+  "description": "MCP server for the official HKMA Open API \u2014 Hong Kong bank ATM/branch search, HIBOR and HKD interest rates. No credentials, no scraping.",
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "hong-kong",
     "hkma",
-    "banking"
+    "hong-kong-monetary-authority",
+    "hong-kong",
+    "hibor",
+    "banking",
+    "open-data"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wkliwk/hk-bank-mcp.git"
+    "url": "git+https://github.com/wkliwk/hkma-mcp.git"
   },
-  "homepage": "https://github.com/wkliwk/hk-bank-mcp#readme",
+  "homepage": "https://github.com/wkliwk/hkma-mcp#readme",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "hk-bank-mcp": "./dist/index.js"
+    "hkma-mcp": "./dist/index.js"
   },
   "files": [
     "dist"
@@ -35,7 +38,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@hk-bank-mcp/hkma-client": "workspace:*",
+    "@hkma-mcp/hkma-client": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.22.0",
     "zod": "^3.24.0"
   },

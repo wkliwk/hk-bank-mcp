@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { HkmaClient } from '@hk-bank-mcp/hkma-client';
+import { HkmaClient } from '@hkma-mcp/hkma-client';
 import { describe, expect, it } from 'vitest';
 import { handleFindBankLocation } from '../src/tools/find-bank-location.js';
 import { handleGetInterestRates } from '../src/tools/get-interest-rates.js';

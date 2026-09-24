@@ -1,4 +1,4 @@
-import { DATA_SOURCES } from '@hk-bank-mcp/hkma-client';
+import { DATA_SOURCES } from '@hkma-mcp/hkma-client';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SERVER_NAME, SERVER_VERSION } from '../meta.js';
 

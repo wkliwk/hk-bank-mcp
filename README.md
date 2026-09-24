@@ -1,6 +1,8 @@
-# hk-bank-mcp
+# hkma-mcp
 
-An MCP (Model Context Protocol) server that gives Claude — or any MCP client — live, accurate knowledge of Hong Kong retail banking: where to find an ATM or branch, current HIBOR and HKD reference rates, and (from v0.2) whether a bank or website is a legitimate HKMA-authorised institution or a published scam. Every figure comes from the Hong Kong Monetary Authority's public API with no key, no registration, and no bank credentials — ever.
+An MCP (Model Context Protocol) server that gives Claude — or any MCP client — live, accurate knowledge from the **official Hong Kong Monetary Authority (HKMA) public API**: where to find a bank ATM or branch, current HIBOR and HKD reference rates, and (from v0.2) whether a bank or website is a legitimate HKMA-authorised institution or a published scam. Every figure comes from HKMA's own open data, with no key, no registration, and no bank credentials — ever.
+
+This project deliberately covers HKMA's data only. Comparing products across individual banks' own Open Banking APIs (HSBC, Hang Seng, BOCHK, Standard Chartered) is a separate, not-yet-started project — see [Out of scope](#what-this-deliberately-does-not-do).
 
 ```
 你: 邊度有恒生分行喺沙田?
@@ -22,12 +24,12 @@ Requires Node.js ≥ 22. No API key, no account, no configuration.
 **Claude Code:**
 
 ```bash
-claude mcp add hk-bank -- npx -y @wkliwk/hk-bank-mcp
+claude mcp add hkma -- npx -y hkma-mcp
 ```
 
 That's it — no clone, no build, nothing else to install. `npx` fetches the package on first run and caches it.
 
-Then just ask, in Cantonese or English: *"邊度有ATM喺中環?"* or *"3個月HIBOR而家幾多?"* (In a script or CI, non-interactive `claude -p` needs the tools named explicitly: add `--allowedTools mcp__hk-bank__hk_find_bank_location,mcp__hk-bank__hk_get_interest_rates,mcp__hk-bank__hk_server_info`.)
+Then just ask, in Cantonese or English: *"邊度有ATM喺中環?"* or *"3個月HIBOR而家幾多?"* (In a script or CI, non-interactive `claude -p` needs the tools named explicitly: add `--allowedTools mcp__hkma__hk_find_bank_location,mcp__hkma__hk_get_interest_rates,mcp__hkma__hk_server_info`.)
 
 By default this registers the server for the current project directory only. To make it available everywhere, add `--scope user` to the command above.
 
@@ -36,9 +38,9 @@ By default this registers the server for the current project directory only. To 
 ```json
 {
   "mcpServers": {
-    "hk-bank": {
+    "hkma": {
       "command": "npx",
-      "args": ["-y", "@wkliwk/hk-bank-mcp"]
+      "args": ["-y", "hkma-mcp"]
     }
   }
 }
@@ -52,10 +54,10 @@ Restart Claude Desktop after editing.
 For contributing, or to run a version newer than the last npm release:
 
 ```bash
-git clone https://github.com/wkliwk/hk-bank-mcp.git
-cd hk-bank-mcp
+git clone https://github.com/wkliwk/hkma-mcp.git
+cd hkma-mcp
 pnpm install && pnpm build
-claude mcp add hk-bank -- node "$(pwd)/packages/mcp-server/dist/index.js"
+claude mcp add hkma -- node "$(pwd)/packages/mcp-server/dist/index.js"
 ```
 
 This requires pnpm (`npm i -g pnpm`) in addition to Node ≥ 22.
@@ -86,9 +88,10 @@ All from the [Hong Kong Monetary Authority Open API](https://apidocs.hkma.gov.hk
 
 ## What this deliberately does not do
 
-- **No bank credentials, ever.** Nothing in this project logs into a bank, automates a login form, or asks for a password. All data is either public HKMA open data or (from v0.4) a statement file the user exports and hands over themselves.
+- **HKMA data only.** Every tool wraps an official HKMA public endpoint. Comparing products across individual banks' own APIs (HSBC, Hang Seng, BOCHK, Standard Chartered's Open Banking Phase I) is out of scope here — that would mean reading each bank's own API, a different data source with its own reliability and terms, and belongs in a separate project.
+- **No bank credentials, ever.** Nothing in this project logs into a bank, automates a login form, or asks for a password.
 - **No scraping.** Every figure traces back to a documented HKMA public endpoint.
-- **No transactions.** Read and compare only — no transfers, no payments, no account actions.
+- **No transactions.** Read-only — no transfers, no payments, no account actions.
 - **Not financial advice.** Published rates are reported with their source and date; the server never recommends a product.
 
 See [`PRODUCT.md`](./PRODUCT.md) for the full feature list, acceptance criteria, and out-of-scope statement.
@@ -131,16 +134,17 @@ Contributions welcome via the usual fork → branch → PR flow. Please run `pnp
 
 ### Releasing to npm
 
-Pushing a `v*.*.*` tag triggers [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml), which runs the full verify suite, bundles the server with esbuild into a single dependency-free file (`packages/mcp-server/scripts/bundle.mjs`), and publishes with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) so the package on the registry is cryptographically tied to this repo and commit. `@hk-bank-mcp/hkma-client`'s `workspace:*` reference is stripped before publish, since npm does not understand pnpm's workspace protocol and everything it exports is already inlined into the bundle. Nothing is published by hand.
+Pushing a `v*.*.*` tag triggers [`.github/workflows/publish-npm.yml`](.github/workflows/publish-npm.yml), which runs the full verify suite, bundles the server with esbuild into a single dependency-free file (`packages/mcp-server/scripts/bundle.mjs`), and publishes with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) so the package on the registry is cryptographically tied to this repo and commit. `@hkma-mcp/hkma-client`'s `workspace:*` reference is stripped before publish, since npm does not understand pnpm's workspace protocol and everything it exports is already inlined into the bundle. Nothing is published by hand.
 
 ## Roadmap
+
+This project's scope is HKMA's public API — not individual banks' own APIs. As of 2026-09-25, cross-bank product comparison (deposit rates, credit cards, mortgages across HSBC/Hang Seng/BOCHK/SCB) has moved out of this repo into a separate, not-yet-started project, since those tools would read each bank's own Open Banking API rather than HKMA's — a different data source deserves a different name and a different repo, not a scope creep inside this one.
 
 | Version | Theme |
 |---|---|
 | **v0.1** (this release) | HKMA core — location search, interest rates |
 | v0.2 | Bank legitimacy / scam checker, contact hotlines, an eval harness |
-| v0.3 | Cross-bank comparison — deposit rates, credit cards, mortgages |
-| v0.4 | Local statement analysis (CSV/PDF you export yourself — never uploaded) |
+| — | *Local statement analysis and any further HKMA data sources: undecided* |
 
 ## License
 

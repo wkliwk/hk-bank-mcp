@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { HkmaClient } from '@hk-bank-mcp/hkma-client';
+import { HkmaClient } from '@hkma-mcp/hkma-client';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SERVER_INSTRUCTIONS, SERVER_NAME, SERVER_VERSION } from './meta.js';

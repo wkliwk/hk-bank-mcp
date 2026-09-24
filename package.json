@@ -1,8 +1,8 @@
 {
-  "name": "hk-bank-mcp-monorepo",
+  "name": "hkma-mcp-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "MCP server for Hong Kong banking data — HKMA public APIs + cross-bank product comparison",
+  "description": "MCP server for the Hong Kong Monetary Authority public API — bank locations, HIBOR and HKD interest rates",
   "license": "MIT",
   "type": "module",
   "engines": {

@@ -38,7 +38,7 @@ jobs:
         run: pnpm verify
 
       - name: Bundle for publish
-        run: pnpm --filter @wkliwk/hk-bank-mcp build:publish
+        run: pnpm --filter hkma-mcp build:publish
 
       # npm publish reads package.json from the current directory regardless
       # of the "files" allowlist — the workspace:* dependency has to go before

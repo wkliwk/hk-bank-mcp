@@ -190,7 +190,7 @@ importers:
 
   packages/mcp-server:
     dependencies:
-      '@hk-bank-mcp/hkma-client':
+      '@hkma-mcp/hkma-client':
         specifier: workspace:*
         version: link:../hkma-client
       '@modelcontextprotocol/sdk':

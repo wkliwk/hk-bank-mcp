@@ -2,7 +2,7 @@
  * Server identity. Kept separate from index.ts so tests can assert on it
  * without spawning a transport.
  */
-export const SERVER_NAME = 'hk-bank-mcp' as const;
+export const SERVER_NAME = 'hkma-mcp' as const;
 export const SERVER_VERSION = '0.1.0' as const;
 
 export const SERVER_INSTRUCTIONS = `Hong Kong banking data from official public sources.

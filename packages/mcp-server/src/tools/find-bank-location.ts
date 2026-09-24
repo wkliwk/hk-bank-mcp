@@ -8,7 +8,7 @@ import {
   type LocationType,
   searchLocations,
   type TypedRecords,
-} from '@hk-bank-mcp/hkma-client';
+} from '@hkma-mcp/hkma-client';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 

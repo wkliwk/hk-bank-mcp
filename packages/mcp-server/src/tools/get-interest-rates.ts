@@ -12,7 +12,7 @@ import {
   restrictToLatestWhenNoRange,
   summarise,
   validateDate,
-} from '@hk-bank-mcp/hkma-client';
+} from '@hkma-mcp/hkma-client';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import type { ToolResult } from './find-bank-location.js';
